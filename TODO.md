@@ -1,5 +1,8 @@
+WEB-PAGE UI
+[] Preguntar al Salcedo si li mola el tema de clicar i que surtin els linkedins i els perfils de l'IEEE.
+
 REPOSITORY
-[] Organize folders and files
+[D] Organize folders and files
 [] Add a proper README.
 [] Change the description to a proper one.
 [] Check all the tasks on the TODO list.
