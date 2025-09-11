@@ -21,7 +21,7 @@
 
 <?php
 // Define the path to your data file
-$file_path = '../WebPage_Executables/temporal_files/fruits.txt';
+$file_path = '../WebPage_Executables/comm_files/fruits_comm.txt';
 // Define the path to your executable
 $executable_path = '../WebPage_Executables/fruits_write';
 
