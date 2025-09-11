@@ -1,5 +1,6 @@
 WEB-PAGE UI
 [] Preguntar al Salcedo si li mola el tema de clicar i que surtin els linkedins i els perfils de l'IEEE.
+[] Editar l'estil perquè sembli meu
 
 REPOSITORY
 [D] Organize folders and files

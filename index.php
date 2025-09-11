@@ -15,14 +15,15 @@
     <hr>
     <p>Description of the project....</p>
     <div id="index-buttons">
-        <div class="big-button"> Schedule a capture </div>
-        <div class="big-button"> See list of finished captures </div>
+        <a href="WebPage_Views/schedule_captures.php" class="big-button">Schedule a capture</a>
+        <a href="WebPage_Views/finished_captures.php" class="big-button">See list of finished captures</a>
     </div>
     <hr>
     <p>In collaboration with:</p>
     <div id="collaboration-logos">
         <img src="WebPage_Style/images/UAB_logo.png" alt="UAB Logo" style="height:100px; width:250px;">
         <img src="WebPage_Style/images/IEEC_logo.png" alt="IEEC Logo" style="height:100px; width:250px;">
+        <img src="WebPage_Style/images/SPCOMNAV_logo.png" alt="SPCOMNAV Logo" style="height:100px; width:250px;">
     </div>
 </body>
 </html>

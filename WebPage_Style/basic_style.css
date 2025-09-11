@@ -88,6 +88,8 @@ p, h1, hr {
 	text-align: center;
 	width: 350px;
 	box-sizing: border-box;
+	text-decoration: none;
+	color: black;
 }
 
 .big-button:hover {
