@@ -5,6 +5,15 @@
 
 // Minimum required libraries
 #include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+#include <curl/curl.h>
+
+
+// Link self created libraries
+#include "SGP4_library/libSGP4.h"
 
 // Constants for coordinate transformations
 #define PI 3.14159265358979323846
@@ -15,8 +24,7 @@
 // Struct to hold the TLE data for a single satellite
 typedef struct {
     char name[25];
-    char line1[70];
-    char line2[70];
+    TLE tle; // Include the TLE struct from libSGP4.h
 } ownTLE;
 
 // Struct to hold observer's geodetic location

@@ -1,6 +1,8 @@
 #include "utils.h"
 #include "download_and_parse_TLE_functions.h"
 
+
+
 // Callback function for cURL to write received data into memory
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
@@ -68,11 +70,6 @@ int parse_tle_string(const char* data, ownTLE** tles) {
     char* context;
     char* line = strtok_r(data_copy, "\n", &context);
 
-    // Skip the first line, which is the header
-    if (line) {
-        line = strtok_r(NULL, "\n", &context);
-    }
-
     // Now, parse the TLEs, which are always three lines
     while (line) {
         char* name = line;
@@ -97,8 +94,11 @@ int parse_tle_string(const char* data, ownTLE** tles) {
         
         // Copy the data into the struct
         strcpy(current_tle->name, name);
-        strcpy(current_tle->line1, line1);
-        strcpy(current_tle->line2, line2);
+        strcpy(current_tle->tle.line1, line1);
+        strcpy(current_tle->tle.line2, line2);
+
+        // void parseLines(TLE *tle, char *line1, char *line2)
+        parseLines(&current_tle->tle, line1, line2);
 
         // Move to the next entry
         line = strtok_r(NULL, "\n", &context);
