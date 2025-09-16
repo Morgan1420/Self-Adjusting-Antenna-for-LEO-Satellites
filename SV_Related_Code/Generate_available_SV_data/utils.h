@@ -11,17 +11,13 @@
 #define DEGREES_TO_RADIANS (PI / 180.0)
 #define MINUTES_PER_DAY 1440.0
 #define SECONDS_PER_DAY 86400.0
-#define EARTH_RADIUS_WGS84 6378.137 // km
-#define EARTH_FLATTENING_WGS84 (1.0 / 298.257223563)
-#define EARTH_OMEGA_RAD_PER_SEC 7.2921151467e-5 // rad/s
 
 // Struct to hold the TLE data for a single satellite
 typedef struct {
     char name[25];
     char line1[70];
     char line2[70];
-    sat_t sgp4_sat; // SGP4 library's satellite data structure
-} TLE;
+} ownTLE;
 
 // Struct to hold observer's geodetic location
 typedef struct {

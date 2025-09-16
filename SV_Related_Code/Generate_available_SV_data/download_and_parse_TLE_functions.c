@@ -56,7 +56,7 @@ char* download_tles(const char* url) {
 }
 
 // Function to parse the TLE data and populate an array of TLE structs
-int parse_tle_string(const char* data, TLE** tles) {
+int parse_tle_string(const char* data, ownTLE** tles) {
     if (!data) {
         return 0;
     }
@@ -82,20 +82,21 @@ int parse_tle_string(const char* data, TLE** tles) {
         // Check for a complete 3-line entry
         if (!name || !line1 || !line2) {
             fprintf(stderr, "Incomplete TLE entry detected. Stopping parsing.\n");
-            break;
+            break; // For now we brake and call it a day, but we could also just skip this entry (to implement later)
         }
 
         count++;
-        *tles = realloc(*tles, count * sizeof(TLE));
+        *tles = realloc(*tles, count * sizeof(ownTLE));
         if (!*tles) {
             fprintf(stderr, "Memory allocation failed for TLE array.\n");
             free(data_copy);
             return 0;
         }
 
-        TLE* current_tle = &((*tles)[count - 1]);
+        ownTLE* current_tle = &((*tles)[count - 1]);
         
         // Copy the data into the struct
+        strcpy(current_tle->name, name);
         strcpy(current_tle->line1, line1);
         strcpy(current_tle->line2, line2);
 

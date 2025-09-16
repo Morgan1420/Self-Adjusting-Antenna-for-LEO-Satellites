@@ -9,7 +9,7 @@
 
 // Function prototypes
 char* download_tles(const char* url);
-int parse_tle_string(const char* data, TLE** tles);
+int parse_tle_string(const char* data, ownTLE** tles);
 
 
 // Struct to store data received from the cURL callback
