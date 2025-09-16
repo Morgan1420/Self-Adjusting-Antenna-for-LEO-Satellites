@@ -1,3 +1,4 @@
+#include "utils.h"
 #include "download_and_parse_TLE_functions.h"
 
 // Callback function for cURL to write received data into memory
@@ -95,7 +96,6 @@ int parse_tle_string(const char* data, TLE** tles) {
         TLE* current_tle = &((*tles)[count - 1]);
         
         // Copy the data into the struct
-        strcpy(current_tle->name, name);
         strcpy(current_tle->line1, line1);
         strcpy(current_tle->line2, line2);
 

@@ -2,12 +2,13 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <time.h>
 #include <curl/curl.h>
 
+// Link self created libraries
+#include "SGP4_library/libSGP4.h"
 
 #include "utils.h"
-#include "Download_and_parse_TLE_functions/download_and_parse_TLE_functions.h"
+#include "download_and_parse_TLE_functions.h"
 
 
 // This program requires the SGP4 library and the cURL library.
@@ -17,8 +18,7 @@
 // Then, compile the program with a command like this:
 // gcc -o skyplot_generator skyplot_data_generator.c -lcurl -lsgp4 -lm
 
-// gcc -o main generate_available_SV_data.c Download_and_parse_TLE_functions/download_and_parse_TLE_functions.c -lcurl -lm && ./main 
-
+// gcc -o main main.c download_and_parse_TLE_functions.c SGP4.c TLE.c -lcurl -lm && ./main
 
 
 int main() {
@@ -37,6 +37,9 @@ int main() {
     free(tle_data_string);
 
     printf("Successfully parsed %d Starlink TLEs.\n", num_satellites);
+    printf("--------------------------------------------------\n");
+
+    
     
     return 0;
 }
