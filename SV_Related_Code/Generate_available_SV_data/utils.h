@@ -20,6 +20,9 @@
 #define DEGREES_TO_RADIANS (PI / 180.0)
 #define MINUTES_PER_DAY 1440.0
 #define SECONDS_PER_DAY 86400.0
+#define EARTH_RADIUS_WGS84 6378.137 // km
+#define EARTH_FLATTENING_WGS84 (1.0 / 298.257223563)
+
 
 // Struct to hold the TLE data for a single satellite
 typedef struct {

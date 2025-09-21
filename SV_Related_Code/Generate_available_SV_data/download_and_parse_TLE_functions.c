@@ -2,7 +2,6 @@
 #include "download_and_parse_TLE_functions.h"
 
 
-
 // Callback function for cURL to write received data into memory
 static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
