@@ -26,18 +26,15 @@
     <label for='excludeDTC'>Exclude DTC SVs</label>
     <input type='checkbox' id='excludeDTC' placeholder='Exclude DTC SVs'>
     <label for="elevationMask">Elevation mask:</label>
-    <select id="elevationMask">
-        <option value="none">No elevation mask</option>
-        <option value="10">Minimum 10° elevation</option>
-        <option value="20">Minimum 20° elevation</option>
-        <option value="30">Minimum 30° elevation</option>
-    </select>
+    <input type="number" id="elevationMask" name="elevationMask" min="0" max="90" value="10"> degrees
     <label for="sortBy">Sort by:</label>
     <select name="sortBy" id="sortBy">
-        <option value="max-elevation">Max Elevation</option>
-        <option value="starting-time">Starting Time</option>
-        <option value="longer-view-window">Longer View Window</option>
+        <option value="1">Max Elevation</option>
+        <option value="2">Starting Time</option>
+        <option value="3">Longer View Window</option>
     </select>
+    <label for="SV-to-display">Number of SVs to display (1-50):</label>
+    <input type="number" id="SV-to-display" name="SV-to-display" min="1" max="50" value="10">
     <input type="submit" value="Apply filters">
 </form>
 <hr class="dotted">
