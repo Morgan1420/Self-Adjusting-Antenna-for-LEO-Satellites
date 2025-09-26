@@ -17,6 +17,32 @@
 
 <p>Select one of the following satellites:</p>
 
+
+<hr class="dotted">
+<b>Filter Satellites</b>
+<form>
+    <label for='excludeVisible'>Exclude SV already visible</label>
+    <input type='checkbox' id='excludeVisible' placeholder='Exclude SV already visible'>
+    <label for='excludeDTC'>Exclude DTC SVs</label>
+    <input type='checkbox' id='excludeDTC' placeholder='Exclude DTC SVs'>
+    <label for="elevationMask">Elevation mask:</label>
+    <select id="elevationMask">
+        <option value="none">No elevation mask</option>
+        <option value="10">Minimum 10° elevation</option>
+        <option value="20">Minimum 20° elevation</option>
+        <option value="30">Minimum 30° elevation</option>
+    </select>
+    <label for="sortBy">Sort by:</label>
+    <select name="sortBy" id="sortBy">
+        <option value="max-elevation">Max Elevation</option>
+        <option value="starting-time">Starting Time</option>
+        <option value="longer-view-window">Longer View Window</option>
+    </select>
+    <input type="submit" value="Apply filters">
+</form>
+<hr class="dotted">
+<!-- SV list -->
+
 <?php
 // Define the path to your data file
 $file_path = '../WebPage_Executables/comm_files/Generate_available_list_of_SV.txt';
