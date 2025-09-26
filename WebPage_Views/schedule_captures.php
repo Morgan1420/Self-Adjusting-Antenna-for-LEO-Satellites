@@ -17,13 +17,11 @@
 
 <p>Select one of the following satellites:</p>
 
-<!-- SV list -->
-
 <?php
 // Define the path to your data file
-$file_path = '../WebPage_Executables/comm_files/fruits_comm.txt';
+$file_path = '../WebPage_Executables/comm_files/Generate_available_list_of_SV.txt';
 // Define the path to your executable
-$executable_path = '../WebPage_Executables/fruits_write';
+$executable_path = '../WebPage_Executables/Generate_available_list_of_SV_1';
 
 // Check if the C executable exists before trying to run it
 if (!file_exists($executable_path) || !is_executable($executable_path)) {
@@ -40,15 +38,15 @@ if (!file_exists($file_path) || !is_readable($file_path)) {
 }
 
 // Read the file content into an array of lines
-$fruits_array = file($file_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+$sv_array = file($file_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
 // Display the list
-echo "<h2>List of Fruits</h2>";
-echo "<ul>";
-foreach ($fruits_array as $fruit) {
-    echo "<li>" . htmlspecialchars($fruit) . "</li>";
+echo "<form>";
+foreach ($sv_array as $sv) {
+    echo "<input type='radio' name='satellite' value='" . htmlspecialchars($sv) . "' id='" . htmlspecialchars($sv) . "'>";
+    echo "<label for='" . htmlspecialchars($sv) . "'>" . htmlspecialchars($sv) . "</label><br>";
 }
-echo "</ul>";
+echo "</form>";
 ?>
 
 </body>

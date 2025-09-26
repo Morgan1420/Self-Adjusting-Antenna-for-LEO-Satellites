@@ -10,6 +10,7 @@
 #include <math.h>
 #include <string.h>
 #include <curl/curl.h>
+#include <ctype.h>
 
 
 // Link self created libraries
@@ -39,8 +40,10 @@ typedef struct {
 
 // Struct to store a single visibility pass
 typedef struct {
-    char name[25];
-    time_t start_time;
+    char name[50];
+    char start_time[50];
+    char end_time[50];
+    double max_elevation;
 } Pass;
 
 
