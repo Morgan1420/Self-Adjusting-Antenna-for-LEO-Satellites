@@ -5,8 +5,19 @@
 // #include "SGP4_library/SGP4.h" // Allready included in utils.h
 
 
-// The following command compiles and executes the code
-// gcc -o main main.c download_and_parse_TLE_functions.c coordinates_translation_functions.c -lcurl -L./SGP4_library -lSGP4 -lm && ./main
+// COMPILE WITH
+// gcc -o main main.c download_and_parse_TLE_functions.c coordinates_translation_functions.c -lcurl -L./SGP4_library -lSGP4 -lm 
+
+// EXECUTE WITH
+// ./main <filter_exclude_allready_visible> <filter_exclude_DTC> <filter_min_elevation> <sort_by_option> <number_of_SV_to_display>
+// Example: ./main 1 1 30 1 15
+// exclude: 1 = yes, 0 = no
+// filter_min_elevation: in degrees
+// sort_by_option: 1 = elevation, 2 = start time, 3 = duration
+// You can also run without arguments to see the default behaviour (show 10 passes unfiltered)
+
+// COMBINED VERSION (COMPILE + EXECUTE)
+// gcc -o main main.c download_and_parse_TLE_functions.c coordinates_translation_functions.c -lcurl -L./SGP4_library -lSGP4 -lm && ./main 1 1 30 1 15
 
 // Helper functions
 void trim_whitespace(char *str) {
@@ -277,7 +288,6 @@ int main(int argc, char *argv[]) {
 
     // Clean up
     free(satellites);
-    
     
     return 0;
 }
