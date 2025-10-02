@@ -11,7 +11,7 @@
 // EXECUTE WITH
 // ./main <filter_exclude_allready_visible> <filter_exclude_DTC> <filter_min_elevation> <sort_by_option> <number_of_SV_to_display>
 // Example: ./main 1 1 30 1 15
-// exclude: 1 = yes, 0 = no
+// exclude x: 1 = yes, 0 = no
 // filter_min_elevation: in degrees
 // sort_by_option: 1 = elevation, 2 = start time, 3 = duration
 // You can also run without arguments to see the default behaviour (show 10 passes unfiltered)
@@ -137,9 +137,6 @@ int main(int argc, char *argv[]) {
                         }
                     }
 
-                    // Debug output for each time step
-                    //printf("Time: %f min, Azimuth: %f deg, Elevation: %f deg, Range: %f km, ", tsince, azimuth, elevation, range);
-                    //printf("Is in pass: %s\n", is_in_pass ? "Yes" : "No");
                 } else {
                     printf("SGP4 propagation error at time %f min.\n", tsince);
                     free(satellites);

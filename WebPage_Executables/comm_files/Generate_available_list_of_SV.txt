@@ -1,10 +1,11 @@
-Satellite: STARLINK-5715, Start: 2025-09-27 16:45:35, End: 2025-09-27 16:57:50, Max Elevation: 89.43 deg
-Satellite: STARLINK-30892, Start: 2025-09-27 16:45:35, End: 2025-09-27 16:58:35, Max Elevation: 89.41 deg
-Satellite: STARLINK-30859, Start: 2025-09-27 16:45:20, End: 2025-09-27 16:58:20, Max Elevation: 89.26 deg
-Satellite: STARLINK-31671, Start: 2025-09-27 16:45:35, End: 2025-09-27 16:57:20, Max Elevation: 88.25 deg
-Satellite: STARLINK-31635, Start: 2025-09-27 16:45:35, End: 2025-09-27 16:57:20, Max Elevation: 88.24 deg
-Satellite: STARLINK-31509, Start: 2025-09-27 16:45:35, End: 2025-09-27 16:57:20, Max Elevation: 88.24 deg
-Satellite: STARLINK-31669, Start: 2025-09-27 16:45:35, End: 2025-09-27 16:57:20, Max Elevation: 88.22 deg
-Satellite: STARLINK-31370, Start: 2025-09-27 16:45:35, End: 2025-09-27 16:57:20, Max Elevation: 88.17 deg
-Satellite: STARLINK-31404, Start: 2025-09-27 16:45:35, End: 2025-09-27 16:57:35, Max Elevation: 88.06 deg
-Satellite: STARLINK-31476, Start: 2025-09-27 16:45:35, End: 2025-09-27 16:57:35, Max Elevation: 88.01 deg
+Incorrect number of arguments. Expected 5 arguments for filtering criteria.
+Satellite: STARLINK-1011, Start: 2025-10-02 20:39:18, End: 2025-10-02 20:48:18, Max Elevation: 18.96 deg
+Satellite: STARLINK-1039, Start: 2025-10-02 20:36:18, End: 2025-10-02 20:47:33, Max Elevation: 17.57 deg
+Satellite: STARLINK-1043, Start: 2025-10-02 20:36:03, End: 2025-10-02 20:47:33, Max Elevation: 18.49 deg
+Satellite: STARLINK-1046, Start: 2025-10-02 20:36:03, End: 2025-10-02 20:47:33, Max Elevation: 18.47 deg
+Satellite: STARLINK-1063, Start: 2025-10-02 20:36:03, End: 2025-10-02 20:47:33, Max Elevation: 18.48 deg
+Satellite: STARLINK-1067, Start: 2025-10-02 20:36:03, End: 2025-10-02 20:47:33, Max Elevation: 18.51 deg
+Satellite: STARLINK-1144, Start: 2025-10-02 20:29:03, End: 2025-10-02 20:32:48, Max Elevation: 1.35 deg
+Satellite: STARLINK-1132, Start: 2025-10-02 20:28:18, End: 2025-10-02 20:40:48, Max Elevation: 48.74 deg
+Satellite: STARLINK-1131, Start: 2025-10-02 20:27:18, End: 2025-10-02 20:35:33, Max Elevation: 6.17 deg
+Satellite: STARLINK-1134, Start: 2025-10-02 20:28:03, End: 2025-10-02 20:39:33, Max Elevation: 32.70 deg
