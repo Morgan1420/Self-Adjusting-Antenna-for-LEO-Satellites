@@ -1,8 +1,8 @@
 <?php
 
 // Define the paths to the comms file and executable
-$file_path = '../WebPage_Executables/comm_files/Generate_available_list_of_SV.txt';
-$executable_path = '../WebPage_Executables/Generate_available_list_of_SV';
+$file_path = '../Executables/comm_files/Generate_available_list_of_SV.txt';
+$executable_path = '../Executables/Generate_available_list_of_SV';
 
 // Check if the C executable exists before trying to run it
 if (!file_exists($executable_path) || !is_executable($executable_path)) {
