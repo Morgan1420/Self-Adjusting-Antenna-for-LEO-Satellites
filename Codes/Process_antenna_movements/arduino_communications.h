@@ -1,0 +1,1 @@
+int open_and_configure_port(const char *port_name, speed_t baud_rate);

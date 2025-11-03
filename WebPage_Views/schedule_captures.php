@@ -12,20 +12,14 @@ if (!file_exists($executable_path) || !is_executable($executable_path)) {
 // Handle the form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    // 1. Access the data using the 'name' attributes
+    // 1. Retrieve the data sent from the form
     $excludeVisible = $_POST['excludeVisible'];
     $excludeDTC = $_POST['excludeDTC'];
     $elevationMask = $_POST['elevationMask'];
     $sortBy = $_POST['sortBy'];
     $SV_to_display = $_POST['SV-to-display'];
 
-    echo "Raw Exclude Visible: " . $excludeVisible . "<br>";
-    echo "Raw Exclude DTC: " . $excludeDTC . "<br>";
-    echo "Raw Elevation Mask: " . $elevationMask . "<br>";
-    echo "Raw Sort By: " . $sortBy . "<br>";
-    echo "Raw SV to Display: " . $SV_to_display . "<br>";
-
-    // 2. Validate and sanitize the inputs
+    // 2. Validate the inputs (and sanitize if necessary)
     $excludeVisible = ($excludeVisible === '1') ? 1 : 0;
     $excludeDTC = ($excludeDTC === '1') ? 1 : 0;
     $elevationMask = filter_var($elevationMask, FILTER_VALIDATE_INT, [
@@ -37,15 +31,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $SV_to_display = filter_var($SV_to_display, FILTER_VALIDATE_INT, [
         'options' => ['min_range' => 1, 'max_range' => 50]
     ]);
-
-    // 3. Check for validation errors
     if ($elevationMask === false || $sortBy === false || $SV_to_display === false) {
         die("Error: Invalid input values. Please ensure all fields are filled out correctly.");
     }
 
     // 4. Prepare the command with arguments
     $command = escapeshellcmd("{$executable_path} {$excludeVisible} {$excludeDTC} {$elevationMask} {$sortBy} {$SV_to_display}");
-    echo "Prepared Command: " . $command . "<br>";
 
     // 5. Execute the command
     exec("{$command} > {$file_path} 2>&1", $output, $return_var);
@@ -112,19 +103,15 @@ $sv_array = file($file_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         <input type="submit" value="Apply filters">
     </form>
     <hr class="dotted">
-    <!-- SV list -->
 
-
-    <!-- Display the list -->
-    <form>
-
+    <form action="/WebPage_Views/capture_process.php" method="post">
         <?php
         foreach ($sv_array as $sv) {
             echo "<input type='radio' name='satellite' value='" . htmlspecialchars($sv) . "' id='" . htmlspecialchars($sv) . "'>";
             echo "<label for='" . htmlspecialchars($sv) . "'>" . htmlspecialchars($sv) . "</label><br>";
         }
         ?>
-
+        <input type="submit" value="Schedule Capture">
     </form>
 
 
