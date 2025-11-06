@@ -1,14 +1,16 @@
 
 // --- CONFIGURATION ---
-// !!! IMPORTANT: REPLACE THIS WITH YOUR ARDUINO'S ACTUAL SERIAL PORT NAME !!!
-// Linux example: "/dev/ttyACM0"
-// macOS example: "/dev/cu.usbmodem14101"
-// Windows example (Conceptually): "COM3" (But requires different code setup)
-#define PORT_NAME "/dev/ttyACM0" 
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
-// The command to send to the Arduino. '1' will tell it to toggle the LED.
-#define COMMAND "1"
+#define PORT_NAME "/dev/ttyACM0"
 
+// The command to send to the Arduino. 'A' will tell it to turn on, 'B' off.
+#define COMMAND_ON "A"
+#define COMMAND_OFF "B"
+
+#include "arduino_communications.h"
 
 int main(int argc, char *argv[]) {
 
@@ -40,7 +42,17 @@ int main(int argc, char *argv[]) {
     }
 
     // Write the command to the serial port
-    ssize_t n = write(fd, COMMAND, strlen(COMMAND));
+    char option = argv[1][0]; // 'A' to turn on, 'B' to turn off
+    ssize_t n;
+    if (option == 'A') {
+        n = write(fd, COMMAND_ON, strlen(COMMAND_ON));
+    } else if (option == 'B') {
+        n = write(fd, COMMAND_OFF, strlen(COMMAND_OFF));
+    } else {
+        fprintf(stderr, "Invalid command. Use 'A' to turn on or 'B' to turn off.\n");
+        close(fd);
+        return 1;
+    }
 
     if (n < 0) {
         perror("Error writing to serial port");
@@ -48,7 +60,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    printf("Sent command '%s' successfully. Bytes written: %ld\n", COMMAND, n);
+    printf("Sent command '%s' successfully. Bytes written: %ld\n", COMMAND_ON, n);
 
     // Give the Arduino time to process the command
     usleep(50000); // Wait 50ms

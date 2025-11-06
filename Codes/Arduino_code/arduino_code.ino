@@ -1,12 +1,4 @@
-/*
- * arduino_sketch.ino
- *
- * This sketch listens for a character command over the serial port.
- * When it receives the character '1', it toggles the state of the 
- * built-in LED (typically connected to Digital Pin 13).
- *
- * The baud rate (9600) MUST match the baud rate set in the C program.
- */
+
 
 // Define the pin for the built-in LED (usually pin 13)
 const int ledPin = LED_BUILTIN; 
