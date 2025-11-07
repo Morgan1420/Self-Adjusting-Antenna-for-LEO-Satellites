@@ -6,7 +6,7 @@
 
 
 // COMPILE WITH
-// gcc -o main main.c download_and_parse_TLE_functions.c coordinates_translation_functions.c -lcurl -L./SGP4_library -lSGP4 -lm 
+// gcc -o main main.c download_and_parse_TLE_functions.c coordinates_translation_functions.c -lcurl -L./../SGP4_library -lSGP4 -lm 
 
 // EXECUTE WITH
 // ./main <filter_exclude_allready_visible> <filter_exclude_DTC> <filter_min_elevation> <sort_by_option> <number_of_SV_to_display>

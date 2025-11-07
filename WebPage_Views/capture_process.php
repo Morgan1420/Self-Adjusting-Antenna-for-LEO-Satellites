@@ -5,68 +5,84 @@
 //   that will call this same file with action=run to execute the fruits_write executable.
 // - AJAX POST with action=run: run the executable and return JSON containing the output.
 
+
+// Define the paths to the comms file and executable
+$file_path = '/../Executables/comm_files/Process_antenna_movements.txt';
+$executable_path = '/../Executables/Process_antenna_movements';
+
 // Helper: safe fetch of POST values
 function post_val($k) {
-    return isset($_POST[$k]) ? $_POST[$k] : null;
+  // A post_val function to safely get POST values without warnings
+  return isset($_POST[$k]) ? $_POST[$k] : null;
 }
 
 // If this is an AJAX run request, execute the executable and return JSON
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && post_val('action') === 'run') {
-    header('Content-Type: application/json; charset=utf-8');
+  // 0. Set JSON response header
+  header('Content-Type: application/json; charset=utf-8');
 
-    $sat = isset($_POST['satellite']) ? trim($_POST['satellite']) : '';
-    $satellite_safe = $sat !== '' ? htmlspecialchars($sat, ENT_QUOTES, 'UTF-8') : null;
+  // 1. Get the satellite name
+  $sat = isset($_POST['safe_name']) ? trim($_POST['safe_name']) : '';
+  $satellite_safe = $sat !== '' ? htmlspecialchars($sat, ENT_QUOTES, 'UTF-8') : null;
 
-    // Build executable path (relative to this file)
-    $exec_path = realpath(__DIR__ . '/../WebPage_Executables/fruits_write');
-    if ($exec_path === false || !file_exists($exec_path)) {
-        echo json_encode(['success' => false, 'error' => 'Executable not found at expected location.']);
-        exit;
-    }
-
-    if (!is_executable($exec_path)) {
-        echo json_encode(['success' => false, 'error' => 'Executable is not executable (check permissions).']);
-        exit;
-    }
-
-    // Execute the program, capture stdout and stderr
-    $descriptorspec = [
-        0 => ['pipe', 'r'],
-        1 => ['pipe', 'w'],
-        2 => ['pipe', 'w']
-    ];
-
-    $proc = proc_open(escapeshellcmd($exec_path), $descriptorspec, $pipes);
-    if (!is_resource($proc)) {
-        echo json_encode(['success' => false, 'error' => 'Failed to start executable (proc_open).']);
-        exit;
-    }
-
-    // close stdin immediately
-    fclose($pipes[0]);
-
-    $stdout = stream_get_contents($pipes[1]);
-    fclose($pipes[1]);
-
-    $stderr = stream_get_contents($pipes[2]);
-    fclose($pipes[2]);
-
-    $status = proc_close($proc);
-
-    echo json_encode([
-        'success' => true,
-        'satellite' => $satellite_safe,
-        'exit_code' => $status,
-        'stdout' => $stdout,
-        'stderr' => $stderr,
-    ]);
+  // 2. Build executable path (relative to this file) and check it exists and it's executable
+  $exec_path = realpath(__DIR__ . $executable_path);
+  if ($exec_path === false || !file_exists($exec_path)) {
+    // Executable file not found
+    echo json_encode(['success' => false, 'error' => 'Executable not found at expected location.']);
     exit;
+  }
+  if (!is_executable($exec_path)) {
+    // Executable not executable
+    echo json_encode(['success' => false, 'error' => 'Executable is not executable (check permissions).']);
+    exit;
+  }
+
+  // 3. Execute the program, capture stdout and stderr
+  // 3.1. Prepare descriptors to read and write data to and from the process
+  $descriptorspec = [
+    0 => ['pipe', 'r'], // stdin (pipe to write)
+    1 => ['pipe', 'w'], // stdout (pipe to read)
+    2 => ['pipe', 'w']  // stderr (pipe to read errors)
+  ];
+
+  // 3.2. Start a new process process that will execute the executable
+  $proc = proc_open(escapeshellcmd($exec_path), $descriptorspec, $pipes);
+  if (!is_resource($proc)) {
+    echo json_encode(['success' => false, 'error' => 'Failed to start executable (proc_open).']);
+    exit;
+  }
+
+  // 3.3. close stdin immediately, we don't need to send any input
+  fclose($pipes[0]);
+
+  // 3.4. Read stdout and stderr
+  $stdout = stream_get_contents($pipes[1]);
+  fclose($pipes[1]);
+
+  $stderr = stream_get_contents($pipes[2]);
+  fclose($pipes[2]);
+
+  // 3.5. Get the exit status
+  $status = proc_close($proc);
+
+  // 4. Return JSON with the results
+  echo json_encode([
+    'success' => true,
+    'satellite' => $satellite_safe,
+    'exit_code' => $status,
+    'stdout' => $stdout,
+    'stderr' => $stderr,
+  ]);
+  
+  exit;
 }
 
 // Otherwise render the initial page (POST from the schedule form or direct GET)
-$satellite = isset($_POST['satellite']) ? trim($_POST['satellite']) : null;
+$satellite = isset($_POST['']) ? trim($_POST['satellite']) : null;
 $satellite_safe = $satellite ? htmlspecialchars($satellite, ENT_QUOTES, 'UTF-8') : null;
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,9 +109,7 @@ $satellite_safe = $satellite ? htmlspecialchars($satellite, ENT_QUOTES, 'UTF-8')
     <h1>Capture Process</h1>
     <hr>
 
-    <?php if (!$satellite_safe): ?>
-        <p>No satellite was selected. <a href="schedule_captures.php">Go back to schedule</a>.</p>
-    <?php else: ?>
+   
         <p>Selected satellite: <strong><?php echo $satellite_safe; ?></strong></p>
 
         <div id="loader" class="loader" aria-hidden="false"></div>
@@ -136,7 +150,7 @@ $satellite_safe = $satellite ? htmlspecialchars($satellite, ENT_QUOTES, 'UTF-8')
             });
         })();
         </script>
-    <?php endif; ?>
+    
 </body>
 </html>
 

@@ -63,6 +63,31 @@ if (!file_exists($file_path) || !is_readable($file_path)) {
 
 // Read the file content into an array of lines
 $sv_array = file($file_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+// Parse each line into structured fields: name, start, end, max_elevation
+$sv_objects = [];
+// Regex to parse lines like: "Satellite: SAT_NAME, Start: START_TIME, End: END_TIME, Max Elevation: XX.X deg"
+$re = '/^Satellite:\s*(.+?),\s*Start:\s*([^,]+),\s*End:\s*([^,]+),\s*Max Elevation:\s*([0-9.+-]+)\s*deg/i';
+foreach ($sv_array as $line) {
+    if (preg_match($re, $line, $m)) {
+        $sv_objects[] = [
+            'raw' => $line,
+            'name' => trim($m[1]),
+            'start' => trim($m[2]),
+            'end' => trim($m[3]),
+            'max_elevation' => floatval($m[4]),
+        ];
+    } else {
+        // fallback: keep whole line as name if it doesn't match
+        $sv_objects[] = [
+            'raw' => $line,
+            'name' => trim($line),
+            'start' => null,
+            'end' => null,
+            'max_elevation' => null,
+        ];
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -85,6 +110,8 @@ $sv_array = file($file_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
     <hr class="dotted">
     <b>Filter Satellites</b>
+
+    <!-- Form to filter satellites -->
     <form action="/WebPage_Views/schedule_captures.php" method="post">
         <label for='excludeVisible'>Exclude SV already visible</label>
         <input type='checkbox' id='excludeVisible' name='excludeVisible' value='1' <?php if ($excludeVisible) echo 'checked'; ?>>
@@ -104,15 +131,50 @@ $sv_array = file($file_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     </form>
     <hr class="dotted">
 
-    <form action="/WebPage_Views/capture_process.php" method="post">
+    <!-- Form to schedule captures -->
+    <form id="schedule-form" action="/WebPage_Views/capture_process.php" method="post">
         <?php
-        foreach ($sv_array as $sv) {
-            echo "<input type='radio' name='satellite' value='" . htmlspecialchars($sv) . "' id='" . htmlspecialchars($sv) . "'>";
-            echo "<label for='" . htmlspecialchars($sv) . "'>" . htmlspecialchars($sv) . "</label><br>";
+        $idx = 0;
+        foreach ($sv_objects as $obj) {
+            $idx++;
+            $safe_name = htmlspecialchars($obj['name'], ENT_QUOTES, 'UTF-8');
+            $safe_start = htmlspecialchars($obj['start'] ?? '', ENT_QUOTES, 'UTF-8');
+            $safe_end = htmlspecialchars($obj['end'] ?? '', ENT_QUOTES, 'UTF-8');
+            $safe_max = isset($obj['max_elevation']) ? htmlspecialchars((string)$obj['max_elevation'], ENT_QUOTES, 'UTF-8') : '';
+
+            // radio with data attributes for start/end/max
+            echo "<input type='radio' name='satellite' value='{$safe_name}' id='sv_{$idx}' data-start='{$safe_start}' data-end='{$safe_end}' data-max='{$safe_max}'>";
+            echo "<label for='sv_{$idx}'>" . $safe_name;
+            if ($safe_start !== '') {
+                echo " — <small>From {$safe_start} to {$safe_end}, max {$safe_max}°</small>";
+            }
+            echo "</label><br>\n";
         }
         ?>
+
+        <!-- Hidden fields that will be populated with the chosen satellite's details on submit -->
+        <input type="hidden" name="start" id="selected_start" value="">
+        <input type="hidden" name="end" id="selected_end" value="">
+        <input type="hidden" name="max_elevation" id="selected_max" value="">
+
         <input type="submit" value="Schedule Capture">
     </form>
+
+    <script>
+        // Before submitting, copy the selected radio's data-* attributes into hidden inputs
+        document.getElementById('schedule-form').addEventListener('submit', function (e) {
+            const checked = document.querySelector('input[name="satellite"]:checked');
+            if (!checked) {
+                e.preventDefault();
+                alert('Please select a satellite first.');
+                return false;
+            }
+            document.getElementById('selected_start').value = checked.dataset.start || '';
+            document.getElementById('selected_end').value = checked.dataset.end || '';
+            document.getElementById('selected_max').value = checked.dataset.max || '';
+            return true;
+        });
+    </script>
 
 
 </body>
