@@ -21,9 +21,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post_val('action') === 'run') {
   // 0. Set JSON response header
   header('Content-Type: application/json; charset=utf-8');
 
-  // 1. Get the satellite name
-  $sat = isset($_POST['safe_name']) ? trim($_POST['safe_name']) : '';
+  // 1. Get the satellite name (accept either 'satellite' or legacy 'safe_name')
+  $sat = null;
+  if (isset($_POST['satellite'])) {
+    $sat = trim($_POST['satellite']);
+  } elseif (isset($_POST['safe_name'])) {
+    $sat = trim($_POST['safe_name']);
+  } else {
+    $sat = '';
+  }
   $satellite_safe = $sat !== '' ? htmlspecialchars($sat, ENT_QUOTES, 'UTF-8') : null;
+
+  // 1b. Constellation letter (may be posted from schedule_captures.php). Default to 'S'.
+  $const_letter = null;
+  if (post_val('constellation') !== null) {
+    $const_letter = trim(post_val('constellation'));
+  } elseif (isset($_POST['constellation'])) {
+    $const_letter = trim($_POST['constellation']);
+  }
+  if ($const_letter === null || $const_letter === '') $const_letter = 'S';
 
   // 2. Build executable path (relative to this file) and check it exists and it's executable
   $exec_path = realpath(__DIR__ . $executable_path);
@@ -46,8 +62,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post_val('action') === 'run') {
     2 => ['pipe', 'w']  // stderr (pipe to read errors)
   ];
 
-  // 3.2. Start a new process process that will execute the executable
-  $proc = proc_open(escapeshellcmd($exec_path), $descriptorspec, $pipes);
+  // 3.2. Start a new process that will execute the executable with two arguments: satellite and constellation letter
+  // Use escapeshellarg for arguments to avoid injection and preserve spacing
+  $cmd = escapeshellcmd($exec_path) . ' ' . escapeshellarg($sat) . ' ' . escapeshellarg($const_letter);
+  $proc = proc_open($cmd, $descriptorspec, $pipes);
   if (!is_resource($proc)) {
     echo json_encode(['success' => false, 'error' => 'Failed to start executable (proc_open).']);
     exit;
@@ -79,8 +97,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post_val('action') === 'run') {
 }
 
 // Otherwise render the initial page (POST from the schedule form or direct GET)
-$satellite = isset($_POST['']) ? trim($_POST['satellite']) : null;
-$satellite_safe = $satellite ? htmlspecialchars($satellite, ENT_QUOTES, 'UTF-8') : null;
+$satellite = null;
+if (isset($_POST['satellite'])) {
+  $satellite = trim($_POST['satellite']);
+} elseif (isset($_POST['safe_name'])) {
+  $satellite = trim($_POST['safe_name']);
+} elseif (isset($_GET['satellite'])) {
+  $satellite = trim($_GET['satellite']);
+}
+$satellite_safe = $satellite !== null ? htmlspecialchars($satellite, ENT_QUOTES, 'UTF-8') : '';
 ?>
 
 <!DOCTYPE html>
@@ -123,11 +148,11 @@ $satellite_safe = $satellite ? htmlspecialchars($satellite, ENT_QUOTES, 'UTF-8')
             const loader = document.getElementById('loader');
             const result = document.getElementById('result');
 
-            fetch(window.location.href, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: new URLSearchParams({ action: 'run', satellite: '<?php echo addslashes($satellite_safe); ?>' })
-            })
+      fetch(window.location.href, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams({ action: 'run', satellite: <?php echo json_encode($satellite_safe ?? ''); ?>, constellation: <?php echo json_encode(isset($_POST['constellation']) ? $_POST['constellation'] : (isset($_GET['constellation']) ? $_GET['constellation'] : 'S')); ?> })
+      })
             .then(resp => resp.json())
             .then(data => {
                 loader.style.display = 'none';

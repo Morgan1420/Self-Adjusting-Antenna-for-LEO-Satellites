@@ -9,8 +9,17 @@ if (!file_exists($executable_path) || !is_executable($executable_path)) {
     die("Error: C executable not found or not executable. Please check the path and permissions.");
 }
 
-// Handle the form submission
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+// Determine selected constellation (may be posted from index.php)
+$constellation = null;
+if (isset($_POST['constellation'])) {
+    $constellation = trim($_POST['constellation']);
+} elseif (isset($_GET['constellation'])) {
+    $constellation = trim($_GET['constellation']);
+}
+if ($constellation === null || $constellation === '') $constellation = 'S';
+
+// Handle the filter form submission
+if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['excludeVisible']) || isset($_POST['elevationMask']) || isset($_POST['SV-to-display']) || isset($_POST['sortBy']))) {
 
     // 1. Retrieve the data sent from the form
     $excludeVisible = $_POST['excludeVisible'];
@@ -44,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         die("Error: C program execution failed. Please check the command and file permissions.");
     }
 } else {
-    // If not a POST request, just run the executable with default parameters
+    // If not a POST filter request, just run the executable with default parameters
     exec("{$executable_path} > {$file_path} 2>&1");
 
     // Fill the variables with default values
@@ -103,6 +112,10 @@ foreach ($sv_array as $line) {
 
     <a href="../index.php" class="small-button">Go back</a>
     <h1>Schedule a Capture</h1>
+    <p>Constellation: <strong><?php
+        $map = ['S' => 'Starlink', 'O' => 'Orbcomm', 'I' => 'Iridium'];
+        echo isset($map[$constellation]) ? htmlspecialchars($map[$constellation]) : htmlspecialchars($constellation);
+    ?></strong></p>
     <hr>
 
     <p>Select one of the following satellites:</p>
@@ -113,6 +126,7 @@ foreach ($sv_array as $line) {
 
     <!-- Form to filter satellites -->
     <form action="/WebPage_Views/schedule_captures.php" method="post">
+        <input type="hidden" name="constellation" value="<?php echo htmlspecialchars($constellation); ?>">
         <label for='excludeVisible'>Exclude SV already visible</label>
         <input type='checkbox' id='excludeVisible' name='excludeVisible' value='1' <?php if ($excludeVisible) echo 'checked'; ?>>
         <label for='excludeDTC'>Exclude DTC SVs</label>
@@ -133,6 +147,7 @@ foreach ($sv_array as $line) {
 
     <!-- Form to schedule captures -->
     <form id="schedule-form" action="/WebPage_Views/capture_process.php" method="post">
+        <input type="hidden" name="constellation" value="<?php echo htmlspecialchars($constellation); ?>">
         <?php
         $idx = 0;
         foreach ($sv_objects as $obj) {

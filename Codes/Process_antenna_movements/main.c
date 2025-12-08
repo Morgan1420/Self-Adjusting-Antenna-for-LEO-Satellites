@@ -11,10 +11,6 @@
 // Compile with:
 // gcc -o main main.c download_and_parse_TLE_functions.c coordinates_translation_functions.c arduino_communications.c -lcurl -L./../SGP4_library -lSGP4 -lm
 
-// The command to send to the Arduino. 'ON' will tell it to turn on, 'OFF' to turn off.
-#define COMMAND_ON "ON\n"
-#define COMMAND_OFF "OFF\n"
-
 // URLs for different constellations
 const char *url_starlink = "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle";
 const char *url_orbcomm = "https://celestrak.org/NORAD/elements/gp.php?GROUP=orbcomm&FORMAT=tle";
@@ -118,13 +114,13 @@ int calculateOrbit(char* satellite_name, char* constellation_name, char ***ardui
     double observer_ecef[3];
     geodetic_to_ecef(&observer, &observer_ecef[0], &observer_ecef[1], &observer_ecef[2]);
 
-    // 8. Propagate for the next 30 minutes at 15-second (0.25 minute) steps and print results
+    // 8. Propagate for the next 30 minutes at 5-second (0.0833 minute) steps and print results
     time_t current_time_unix = time(NULL);
     // Prepare command list (pairs: command, timestamp). We'll return a NULL-terminated char** via arduinoCommands_ptr
     char **cmds = NULL;
     int cmd_count = 0;
 
-    for (double t_min = 0.0; t_min < 30.0; t_min += 0.25) {
+    for (double t_min = 0.0; t_min < 30.0; t_min += 0.0833) {
         double tsince = t_min; // minutes since epoch
 
         double sat_pos_eci[3], sat_vel_eci[3];
@@ -176,7 +172,7 @@ int calculateOrbit(char* satellite_name, char* constellation_name, char ***ardui
 
         if (first) {
             // Initial absolute position command: AXXXEXX (XXX az, XX el)
-            snprintf(cmdbuf, sizeof(cmdbuf), "A%03dE%02d", az_int, el_int);
+            snprintf(cmdbuf, sizeof(cmdbuf), "A%03dE%02d\n", az_int, el_int);
 
             // push command
             cmds = realloc(cmds, (cmd_count + 1) * sizeof(char*));
@@ -199,10 +195,10 @@ int calculateOrbit(char* satellite_name, char* constellation_name, char ***ardui
                 if (abs_az > 999) abs_az = 999;
                 if (delta_az > 0) {
                     // Move Azimuth Right
-                    snprintf(cmdbuf, sizeof(cmdbuf), "MAR%03d", abs_az);
+                    snprintf(cmdbuf, sizeof(cmdbuf), "MAR%03d\n", abs_az);
                 } else {
                     // Move Azimuth Left
-                    snprintf(cmdbuf, sizeof(cmdbuf), "MAL%03d", abs_az);
+                    snprintf(cmdbuf, sizeof(cmdbuf), "MAL%03d\n", abs_az);
                 }
                 cmds = realloc(cmds, (cmd_count + 1) * sizeof(char*));
                 cmds[cmd_count++] = strdup(cmdbuf);
@@ -216,9 +212,9 @@ int calculateOrbit(char* satellite_name, char* constellation_name, char ***ardui
                 int abs_el = abs(delta_el);
                 if (abs_el > 99) abs_el = 99;
                 if (delta_el > 0) {
-                    snprintf(cmdbuf, sizeof(cmdbuf), "MEU%02d", abs_el);
+                    snprintf(cmdbuf, sizeof(cmdbuf), "MEU%02d\n", abs_el);
                 } else {
-                    snprintf(cmdbuf, sizeof(cmdbuf), "MED%02d", abs_el);
+                    snprintf(cmdbuf, sizeof(cmdbuf), "MED%02d\n", abs_el);
                 }
                 cmds = realloc(cmds, (cmd_count + 1) * sizeof(char*));
                 cmds[cmd_count++] = strdup(cmdbuf);
@@ -285,13 +281,13 @@ int main(int argc, char *argv[]) {
     }
 
     // Pritn all generated commands for debugging
-    printf("Generated Arduino Commands:\n");
+    /*printf("Generated Arduino Commands:\n");
     for (int i = 0; arduinoCommands && arduinoCommands[i] != NULL; i += 2) {
         printf("Time: %s, Command: %s\n", arduinoCommands[i + 1], arduinoCommands[i]);
-    }   
+    }*/  
     
-/*
-    // 2) Obrir comunicació sèrie amb l'Arduino
+
+    // 2. Open serial communication with the Arduino board
     // Find arduino port
     char arduino_port[PATH_MAX] = {0};
     if (find_arduino_port(arduino_port, sizeof(arduino_port)) != 0) {
@@ -302,53 +298,62 @@ int main(int argc, char *argv[]) {
         arduino_port[sizeof(arduino_port) - 1] = '\0';
     }
 
+    // Open and configure the port at 9600 baud
     int fd = open_and_configure_port(arduino_port, B9600);
 
-    // Pause briefly to ensure the port is ready for data transmission
-    sleep(2); 
+    sleep(2); // Pause briefly (2 seconds) to ensure the port is ready for data transmission
 
     if (fd == -1) {
+        // Failed to open the port
         fprintf(stderr, "Failed to connect to the Arduino. Check port name and permissions.\n");
         return 1;
     }
 
-    // Write the command to the serial port
-    const char *option = argv[1]; // 'ON' to turn on, 'OFF' to turn off
-    ssize_t n;
-    if (strcmp(option, "ON") == 0) {
-        n = write(fd, COMMAND_ON, strlen(COMMAND_ON));
-    } else if (strcmp(option, "OFF") == 0) {
-        n = write(fd, COMMAND_OFF, strlen(COMMAND_OFF));
-    } else {
-        fprintf(stderr, "Invalid command. Use 'ON' to turn on or 'OFF' to turn off.\n");
-        close(fd);
-        return 1;
+    // 3. Send commands to Arduino
+    if (arduinoCommands) {
+        for (int idx = 0; arduinoCommands[idx] != NULL; idx += 2) {
+            // 3.1. Prepare command and timestamp
+            const char *cmd = arduinoCommands[idx];
+            const char *ts = arduinoCommands[idx + 1];
+            
+            if (!cmd) continue; //Skip if command is NULL
+
+            // 3.2. Wait until the timestamp coincides with (or is bigger than) the current time
+            // Get current time
+            time_t now = time(NULL);
+            struct tm *tm_now = localtime(&now);
+            char now_str[64];
+            strftime(now_str, sizeof(now_str), "%Y-%m-%d %H:%M:%S", tm_now);
+            while (strcmp(now_str, ts) < 0) {
+                // Sleep briefly to avoid busy-waiting
+                usleep(100000); // 100 ms
+                now = time(NULL);
+                tm_now = localtime(&now);
+                strftime(now_str, sizeof(now_str), "%Y-%m-%d %H:%M:%S", tm_now);
+            }
+            
+            // Write command to serial port
+            ssize_t n = write(fd, cmd, strlen(cmd));
+            if (n < 0) {
+                perror("Error writing to serial port");
+                break;
+            }
+            // Ensure data is transmitted
+            tcdrain(fd);
+
+            printf("Sent command: %s at %s (scheduled for %s)\n", cmd, now_str, ts);
+
+        }
+
+        // Free the command list
+        for (int i = 0; arduinoCommands[i] != NULL; ++i) free(arduinoCommands[i]);
+        free(arduinoCommands);
+        arduinoCommands = NULL;
     }
-
-    if (n < 0) {
-        perror("Error writing to serial port");
-        close(fd);
-        return 1;
-    }
-
-    printf("Sent command '%s' successfully. Bytes written: %ld\n", option, n);
-
-    // Give the Arduino time to process the command
-    usleep(50000); // Wait 50ms
 
     // Close the file descriptor
     close(fd);
 
-
-    // 2) Calibrar l'antena perquè estigui mirant a azimuth 0º i elevació 0º
-
-    // 3) Per cada timeStep (1 segon, 0.5 segons...) moure els motors 
-
-    // 4) Finalitzar el programa quan el SV ja no sigui visible.
-
-
-    // NOTA 1: Cal veure si per fer la captura amb la SDR (USRP) cal executar cap altre codi (si es en paral·lel es podria fer servir MPI o OpenMP)
-    // NOTA 2: Fer un sistema de referència de forma que el rang de moviment de l'antena sigui -360 ←→ +360, per evitar que els cables s'enrrollin entre ells 
-    */
+    // Finalitzar el programa
     return 0;
 }

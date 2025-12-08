@@ -1,49 +1,200 @@
+#include <SoftwareSerial.h>
 
+// Constants
+#define ARDUINO_LED 13
 
-// Define the pin for the built-in LED (usually pin 13)
-const int ledPin = LED_BUILTIN; 
+#define PUL_AZIMUTH 7
+#define DIR_AZIMUTH 6
+#define ENA_AZIMUTH 5
 
-// Track the current state of the LED
-bool ledState = LOW;
+#define PUL_ELEVATION 10
+#define DIR_ELEVATION 9
+#define ENA_ELEVATION 8
 
-void setup() {
-  // Initialize the built-in LED pin as an output
-  pinMode(ledPin, OUTPUT);
-  digitalWrite(ledPin, ledState); // Ensure it starts LOW
+// Global Variables
+String command = "";
+bool completeCommandDetected = false; // check 
 
-  // Start serial communication at 9600 baud
-  Serial.begin(9600);
-  Serial.println("Arduino Ready. Waiting for command '1'...");
+int speedAz = 50; // Miliseconds between on and off, tune for more precision
+int speedEl = 50;
+
+bool ledON = false; // Delete on final version, this is for debugging
+
+// Functions
+void moveAzimuth(bool dir, int deg){
+  // Change stepper direction
+  if(dir) digitalWrite(DIR_AZIMUTH, LOW);
+  else digitalWrite(DIR_AZIMUTH, HIGH);
+
+  // Move stepper
+  digitalWrite(PUL_AZIMUTH, HIGH);
+  for(int d = 0; d < deg; d++) delayMicroseconds(speedAz); // Wait to finish, tune "speedAz for more precision.
+  digitalWrite(PUL_AZIMUTH, LOW);    
 }
 
+void moveElevation(bool dir, int deg){
+  // Change stepper direction
+  if(dir) digitalWrite(DIR_ELEVATION, LOW);
+  else digitalWrite(DIR_ELEVATION, HIGH);
+
+  // Move stepper
+  digitalWrite(PUL_ELEVATION, HIGH);
+  for(int d = 0; d < deg; d++) delayMicroseconds(speedEl); // Wait to finish, tune "speedAz for more precision.
+  digitalWrite(PUL_ELEVATION, LOW);    
+}
+
+void calibrate(){
+  // Move 
+}
+
+void test(){
+  // Function that checks all movements.
+  // Order of command execution: C → MAL360 → MED90 → MAR360 → MEU360 → A090E45
+    
+}
+
+
+// Void Setup
+void setup() {
+  // Initialize Serial
+  Serial.begin(9600);
+
+  // Initialize vairiables
+  command.reserve(30); // Prevent memmory fragmentation
+
+  // Initialize pins
+  pinMode(ARDUINO_LED, OUTPUT);
+  pinMode(PUL_AZIMUTH, OUTPUT);
+  pinMode(DIR_AZIMUTH, OUTPUT);
+  pinMode(ENA_AZIMUTH, OUTPUT);
+  pinMode(PUL_ELEVATION, OUTPUT);
+  pinMode(DIR_ELEVATION, OUTPUT);
+  pinMode(ENA_ELEVATION, OUTPUT);
+
+  // Set default outputs
+  digitalWrite(ARDUINO_LED, HIGH);
+  digitalWrite(PUL_AZIMUTH, LOW);
+  digitalWrite(DIR_AZIMUTH, LOW);
+  digitalWrite(ENA_AZIMUTH, HIGH); // Enable high
+  digitalWrite(PUL_ELEVATION, LOW);
+  digitalWrite(DIR_ELEVATION, LOW);
+  digitalWrite(ENA_ELEVATION, HIGH); // Enable high
+  
+
+  // Notify the user the arduino is ready to take in commands
+  // Serial.print("Arduino ready!\n");
+}
+
+
+
+
+
+// Void Loop
 void loop() {
-  // Check if any data is available to be read from the serial buffer
-  if (Serial.available() > 0) {
-    // Read the incoming byte/character
-    char incomingByte = Serial.read();
 
-    // Check if the received character is our command '1'
-    if (incomingByte == '1') {
-      // Toggle the LED state
-      ledState = !ledState;
-      digitalWrite(ledPin, ledState);
-
-      // Send a confirmation message back to the computer (optional but good practice)
-      Serial.print("Command received: '");
-      Serial.print(incomingByte);
-      Serial.print("'. LED is now ");
-      
-      if (ledState == HIGH) {
-        Serial.println("ON.");
-      } else {
-        Serial.println("OFF.");
-      }
+  // 1. Check command from serial (this loop runs repeatedly whenever data is available)
+  while (Serial.available()) {
+    // 1.1. Read the next character
+    char inChar = (char)Serial.read();
+    
+    // 1.2. Stop reading characters when we reach a \n or a \r
+    if (inChar == '\n' || inChar == '\r') {
+      // 1.2.1. If we detect a termination character we know the command is complete and exit the loop
+      completeCommandDetected = true; 
     } else {
-      // Print anything else received
-      Serial.print("Received unknown command: ");
-      Serial.println(incomingByte);
+      // 1.2.2. Add the detected char to the command string
+      command += inChar;
     }
+    
+    
   }
-  // Small delay to prevent flooding the CPU/serial port (optional)
-  delay(10); 
+  
+  // 2. If we have a new command we handle it
+  if(completeCommandDetected){    
+    String commandStatus = "ERROR"; // Can be "ERROR", "DONE or "UNKNOWN"
+
+    if(ledON)
+    digitalWrite(ARDUINO_LED, HIGH); // Sed led to HIGH as a visual key
+    else
+    digitalWrite(ARDUINO_LED, LOW);
+
+    ledON = !ledON;
+    
+    // 2.1. Sanitize the command
+    command.trim(); // To avoid empty spaces or unwanted characters.    
+    
+    // 2.2. Handle the commands
+    /* The commands can look like one of the following: 
+     * - MALXXX (Move Azimuth Left XXX degrees)
+     * - MARXXX (Move Azimuth Right XXX degrees)
+     * - MEUXX (Move Elevation Up XX degrees)
+     * - MEDXX (Move Elevation Down XX degrees)
+     * - AXXXEYY (Goto Azimuth XXX and height YY)
+     * - C (Calibrate to Az-0 and El-90)
+     * - T (Test command: Calibrate-MAL360-MEU90-MAR360-MED360-A090E45)*/
+
+    // Movement commands
+    if(command.startsWith("M")){
+      if(command.indexOf("A") == 1){
+        // Command MAR or MAL
+        // Extract direction and degrees
+        bool dir = command.indexOf("L") == 2 ? true : false;
+        int deg = command.substring(3, 6).toInt(); // From index 3 (inclusive) to 6 (exclusive)
+        // Move
+        moveAzimuth(dir, deg);         
+      }
+      else { 
+        // Command MEU or MED
+        // Extract direction and degrees
+        bool dir = command.indexOf("U") == 2 ? true : false;
+        int deg = command.substring(3, 5).toInt(); // From index 3 (inclusive) to 5 (exclusive)
+        // Move
+        moveElevation(dir, deg); 
+      }
+
+      commandStatus = "DONE";
+
+    // GoTo command
+    } else if (command.startsWith("A") && command.indexOf("E") == 4 && command.length() == 7){      
+      // 1. Extract Azimuth (3 digits: 000-540) and Elevation (2 digits: 00-90)
+      int valueAzimuth = command.substring(1, 4).toInt(); // From index 1 (inclusive) to 4 (exclusive)
+      int valueElevation = command.substring(5, 7).toInt();  // From index 5 (inclusive) to 7 (exclusive)
+
+      // 2. Calibrate to center the device at Az-0 and El-0
+      calibrate();
+      
+      // 3. Move Azimuth first
+      moveAzimuth(true, valueAzimuth);
+      
+      // 4. Move Elevation second
+      moveElevation(true, valueElevation);
+    
+      commandStatus = "DONE";
+    }
+     
+    /*  
+    }else if (){
+      // calibrate
+    }else if ()
+      // test
+    */
+    
+    
+    else{
+      // Unknown command recieved
+      commandStatus = "UNKNOWN";
+    }
+
+
+    // Resset the command logic for the next command
+    command = "";
+    completeCommandDetected = false;
+    
+    // Notify the user
+    if(commandStatus == "DONE") Serial.print("DONE\n");
+    else if (commandStatus = "UNKNOWN") Serial.print("UNKNOWN\n");
+    else if (commandStatus = "ERROR") Serial.print("ERROR\n");
+    
+    
+  }
 }
