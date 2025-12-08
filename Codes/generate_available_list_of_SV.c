@@ -14,8 +14,8 @@
  * hard-coded observer location.
  *
  * Build:
- *   gcc -o main main.c download_and_parse_TLE_functions.c coordinates_translation_functions.c \
- *       -lcurl -L./../SGP4_library -lSGP4 -lm
+ *   gcc -o main generate_available_list_of_SV.c Satellite_data/download_and_parse_TLE_functions.c Satellite_data/coordinates_translation_functions.c \
+ *       -lcurl -L SGP4_library -lSGP4 -lm
  *
  * Usage:
  *   ./main [CONST] [exclude_visible] [exclude_DTC] [min_elevation_deg] [sort_option] [num_to_display]

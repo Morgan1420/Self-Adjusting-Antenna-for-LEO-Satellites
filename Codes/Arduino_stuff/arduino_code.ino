@@ -15,10 +15,11 @@
 String command = "";
 bool completeCommandDetected = false; // check 
 
-int speedAz = 50; // Miliseconds between on and off, tune for more precision
-int speedEl = 50;
+int AzSpeed = 500; // Miliseconds between on and off, tune for more precision
+int AzStepsPerDegree = 257; // 32000 steps per revolution
 
-bool ledON = false; // Delete on final version, this is for debugging
+int ElSpeed = 500;
+int ElStepsPerDegree = 257; // TBD
 
 // Functions
 void moveAzimuth(bool dir, int deg){
@@ -26,10 +27,19 @@ void moveAzimuth(bool dir, int deg){
   if(dir) digitalWrite(DIR_AZIMUTH, LOW);
   else digitalWrite(DIR_AZIMUTH, HIGH);
 
-  // Move stepper
-  digitalWrite(PUL_AZIMUTH, HIGH);
-  for(int d = 0; d < deg; d++) delayMicroseconds(speedAz); // Wait to finish, tune "speedAz for more precision.
-  digitalWrite(PUL_AZIMUTH, LOW);    
+  // CountStepsPerDegree
+  int totalSteps = AzStepsPerDegree * deg;
+  
+  // Count number of repetitions
+  for (long i = 0; i < totalSteps; i++) {
+    // 1. Send the HIGH signal (Start of Pulse)
+    digitalWrite(PUL_AZIMUTH, HIGH);
+    delayMicroseconds(AzSpeed); 
+    
+    // 2. Send the LOW signal (End of Pulse - THIS IS THE CRITICAL PART!)
+    digitalWrite(PUL_AZIMUTH, LOW);
+    delayMicroseconds(AzSpeed); 
+  }
 }
 
 void moveElevation(bool dir, int deg){
@@ -37,10 +47,18 @@ void moveElevation(bool dir, int deg){
   if(dir) digitalWrite(DIR_ELEVATION, LOW);
   else digitalWrite(DIR_ELEVATION, HIGH);
 
-  // Move stepper
-  digitalWrite(PUL_ELEVATION, HIGH);
-  for(int d = 0; d < deg; d++) delayMicroseconds(speedEl); // Wait to finish, tune "speedAz for more precision.
-  digitalWrite(PUL_ELEVATION, LOW);    
+  // CountStepsPerDegree
+  int totalSteps = ElStepsPerDegree * deg;
+  
+  for (long i = 0; i < totalSteps; i++) {
+    // 1. Send the HIGH signal (Start of Pulse)
+    digitalWrite(PUL_ELEVATION, HIGH);
+    delayMicroseconds(ElSpeed); 
+    
+    // 2. Send the LOW signal (End of Pulse - THIS IS THE CRITICAL PART!)
+    digitalWrite(PUL_ELEVATION, LOW);
+    delayMicroseconds(ElSpeed); 
+  }   
 }
 
 void calibrate(){
@@ -73,16 +91,12 @@ void setup() {
 
   // Set default outputs
   digitalWrite(ARDUINO_LED, HIGH);
-  digitalWrite(PUL_AZIMUTH, LOW);
-  digitalWrite(DIR_AZIMUTH, LOW);
   digitalWrite(ENA_AZIMUTH, HIGH); // Enable high
-  digitalWrite(PUL_ELEVATION, LOW);
-  digitalWrite(DIR_ELEVATION, LOW);
   digitalWrite(ENA_ELEVATION, HIGH); // Enable high
   
 
   // Notify the user the arduino is ready to take in commands
-  // Serial.print("Arduino ready!\n");
+  Serial.print("Arduino ready!\n");
 }
 
 
