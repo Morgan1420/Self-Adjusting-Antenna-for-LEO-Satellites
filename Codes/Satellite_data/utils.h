@@ -14,7 +14,7 @@
 
 
 // Link self created libraries
-#include "SGP4_library/libSGP4.h"
+#include "../SGP4_library/libSGP4.h"
 
 // Constants for coordinate transformations
 #define PI 3.14159265358979323846

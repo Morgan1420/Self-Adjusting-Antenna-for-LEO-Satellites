@@ -44,17 +44,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['excludeVisible']) || 
         die("Error: Invalid input values. Please ensure all fields are filled out correctly.");
     }
 
-    // 4. Prepare the command with arguments
-    $command = escapeshellcmd("{$executable_path} {$excludeVisible} {$excludeDTC} {$elevationMask} {$sortBy} {$SV_to_display}");
+    // 4. Prepare the command with arguments (include constellation as first arg)
+    $exec_quoted = escapeshellarg($executable_path);
+    $out_quoted = escapeshellarg($file_path);
+    $const_arg = escapeshellarg($constellation);
+    $args = $const_arg . ' ' . intval($excludeVisible) . ' ' . intval($excludeDTC) . ' ' . intval($elevationMask) . ' ' . intval($sortBy) . ' ' . intval($SV_to_display);
+    $command = $exec_quoted . ' ' . $args;
 
-    // 5. Execute the command
-    exec("{$command} > {$file_path} 2>&1", $output, $return_var);
+    // 5. Execute the command and redirect output to file
+    exec("{$command} > {$out_quoted} 2>&1", $output, $return_var);
     if ($return_var !== 0) {
         die("Error: C program execution failed. Please check the command and file permissions.");
     }
 } else {
     // If not a POST filter request, just run the executable with default parameters
-    exec("{$executable_path} > {$file_path} 2>&1");
+    // Run with default parameters but include constellation selection
+    $exec_quoted = escapeshellarg($executable_path);
+    $out_quoted = escapeshellarg($file_path);
+    $const_arg = escapeshellarg($constellation);
+    // Default parameters: excludeVisible=0, excludeDTC=0, elevationMask=10, sortBy=1, SV_to_display=10
+    $defaults = $const_arg . ' 0 0 10 1 10';
+    exec("{$exec_quoted} {$defaults} > {$out_quoted} 2>&1");
 
     // Fill the variables with default values
     $excludeVisible = 0;

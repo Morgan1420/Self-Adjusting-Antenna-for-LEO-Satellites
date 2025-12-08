@@ -1,23 +1,51 @@
-#include "utils.h"
-#include "Generate_download_and_parse_TLE_functions.h"
-#include "coordinates_translation_functions.h"
+#include "Satellite_data/utils.h"
+#include <ctype.h>
+#include <strings.h>
+#include "Satellite_data/download_and_parse_TLE_functions.h"
+#include "Satellite_data/coordinates_translation_functions.h"
 
 // #include "SGP4_library/SGP4.h" // Allready included in utils.h
 
 
-// COMPILE WITH
-// gcc -o main main.c download_and_parse_TLE_functions.c coordinates_translation_functions.c -lcurl -L./../SGP4_library -lSGP4 -lm 
-
-// EXECUTE WITH
-// ./main <filter_exclude_allready_visible> <filter_exclude_DTC> <filter_min_elevation> <sort_by_option> <number_of_SV_to_display>
-// Example: ./main 1 1 30 1 15
-// exclude x: 1 = yes, 0 = no
-// filter_min_elevation: in degrees
-// sort_by_option: 1 = elevation, 2 = start time, 3 = duration
-// You can also run without arguments to see the default behaviour (show 10 passes unfiltered)
-
-// COMBINED VERSION (COMPILE + EXECUTE)
-// gcc -o main main.c download_and_parse_TLE_functions.c coordinates_translation_functions.c -lcurl -L./SGP4_library -lSGP4 -lm && ./main 1 1 30 1 15
+/*
+ * generate_available_sv_data.c
+ * Purpose: download TLEs for a chosen constellation (Starlink / Orbcomm / Iridium),
+ * parse them, propagate with SGP4 and list upcoming visible passes from the
+ * hard-coded observer location.
+ *
+ * Build:
+ *   gcc -o main main.c download_and_parse_TLE_functions.c coordinates_translation_functions.c \
+ *       -lcurl -L./../SGP4_library -lSGP4 -lm
+ *
+ * Usage:
+ *   ./main [CONST] [exclude_visible] [exclude_DTC] [min_elevation_deg] [sort_option] [num_to_display]
+ *
+ * Arguments:
+ *   CONST (optional)        One-letter code or name selecting the constellation:
+ *                           'S' or "starlink"   -> Starlink (default)
+ *                           'O' or "orbcomm"    -> Orbcomm
+ *                           'I' or "iridium"    -> Iridium
+ *   exclude_visible         1 = exclude passes already in progress, 0 = include
+ *   exclude_DTC             1 = exclude satellites with "[DTC]" in their name, 0 = include
+ *   min_elevation_deg       Minimum peak elevation (degrees) to consider a pass
+ *   sort_option             1 = by max elevation (desc)
+ *                           2 = by start time (asc)
+ *                           3 = by duration (desc)
+ *   num_to_display          Number of passes to print (positive integer)
+ *
+ * Examples:
+ *   ./main
+ *     - Default behaviour: show up to 10 passes unfiltered (legacy mode)
+ *   ./main S 1 1 30 1 15
+ *     - Starlink, exclude currently visible & DTC, min elevation 30°, sort by elevation, show 15
+ *   ./main iridium 0 0 10 2 5
+ *     - Iridium, include everything, min elevation 10°, sort by start time, show 5
+ *
+ * Notes:
+ *   - Requires libcurl and the SGP4 library (linker flags above).
+ *   - The program performs a short SGP4 propagation (30 minutes, 15s steps)
+ *     to detect visibility intervals and peak elevations.
+ */
 
 // Helper functions
 void trim_whitespace(char *str) {
@@ -40,12 +68,43 @@ GeodeticPosition observer = {
 
 
 int main(int argc, char *argv[]) {
-    // The new URL for Starlink TLEs
-    const char* url = "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle";
+    // The new URL for constellation TLEs
+    const char* url_starlink = "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle";
+    const char* url_orbcomm = "https://celestrak.org/NORAD/elements/gp.php?GROUP=orbcomm&FORMAT=tle";
+    const char* url_iridium = "https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium&FORMAT=tle";
 
-    // 1) Download TLE data
-    // printf("Downloading Starlink TLE data from %s...\n", url);
-    char* tle_data_string = download_tles(url);
+    // Allow optional first argument to select constellation (S, O, I or names). If provided,
+    // the rest of numeric filter args (if any) are expected after it. This keeps backward
+    // compatibility with existing invocation that used 5 numeric arguments.
+    int arg_offset = 0; // number of leading args consumed for constellation
+    const char *selected_url = url_starlink; // default
+    char constellation = 'S';
+    if (argc > 1) {
+        // If argv[1] is non-numeric (starts with a letter), treat it as constellation
+        if (isalpha((unsigned char)argv[1][0])) {
+            arg_offset = 1;
+            char c = toupper((unsigned char)argv[1][0]);
+            constellation = c;
+            if (c == 'S') selected_url = url_starlink;
+            else if (c == 'O') selected_url = url_orbcomm;
+            else if (c == 'I') selected_url = url_iridium;
+            else {
+                // allow full names
+                if (strncasecmp(argv[1], "starlink", 8) == 0) selected_url = url_starlink;
+                else if (strncasecmp(argv[1], "orbcomm", 7) == 0) selected_url = url_orbcomm;
+                else if (strncasecmp(argv[1], "iridium", 7) == 0) selected_url = url_iridium;
+                else {
+                    fprintf(stderr, "Unknown constellation '%s', defaulting to Starlink.\n", argv[1]);
+                    selected_url = url_starlink;
+                    constellation = 'S';
+                }
+            }
+            //fprintf(stderr, "Selected constellation: %c\n", constellation);
+        }
+    }
+
+    // 1) Download TLE data for the selected constellation
+    char* tle_data_string = download_tles(selected_url);
     if (!tle_data_string) {
         fprintf(stderr, "Failed to download TLE data. Exiting.\n");
         return 1;
@@ -147,12 +206,13 @@ int main(int argc, char *argv[]) {
         }
 
         // 4) Filter passes with the data sent as arguments
-        if (argc == 6){ 
-            int filter_exclude_allready_visible = atoi(argv[1]);
-            int filter_exclude_DTC = atoi(argv[2]); 
-            double filter_min_elevation = atof(argv[3]);
-            int sort_by_option = atoi(argv[4]);
-            double number_of_SV_to_display = atof(argv[5]);
+        if (argc - arg_offset == 6){ 
+            int base = 1 + arg_offset;
+            int filter_exclude_allready_visible = atoi(argv[base + 0]);
+            int filter_exclude_DTC = atoi(argv[base + 1]); 
+            double filter_min_elevation = atof(argv[base + 2]);
+            int sort_by_option = atoi(argv[base + 3]);
+            double number_of_SV_to_display = atof(argv[base + 4]);
 
 
             Pass* filtered_passes = NULL;
