@@ -11,8 +11,12 @@
     
 </head>
 <body>
-    <a href="../index.php" class="small-button">Back</a>
-    <h1>Free Control</h1>
+    <div id="title-section">
+        <a href="../index.php" class="arrow-button"><img src="../WebPage_Style/images/home_icon.png" alt="Go back"></a>
+        <h1>Controlador Lliure</h1>
+        <a href="./" class="small-button"></a> <!-- Placeholder <a> -->
+    </div>
+    
 
     <div class="console-wrap">
         <div class="console-grid">

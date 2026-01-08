@@ -3,23 +3,23 @@
 // Constants
 #define ARDUINO_LED 13
 
-#define PUL_AZIMUTH 7
-#define DIR_AZIMUTH 6
-#define ENA_AZIMUTH 5
+#define PUL_AZIMUTH 10
+#define DIR_AZIMUTH 9
+#define ENA_AZIMUTH 8
 
-#define PUL_ELEVATION 10
-#define DIR_ELEVATION 9
-#define ENA_ELEVATION 8
+#define PUL_ELEVATION 7
+#define DIR_ELEVATION 6
+#define ENA_ELEVATION 5
 
 // Global Variables
 String command = "";
 bool completeCommandDetected = false; // check 
 
-int AzSpeed = 500; // Miliseconds between on and off, tune for more precision
-int AzStepsPerDegree = 257; // 32000 steps per revolution
+long AzSpeed = 500; // Miliseconds between on and off, tune for more precision
+long AzStepsPerDegree = 514; // 32000 steps per revolution
 
-int ElSpeed = 500;
-int ElStepsPerDegree = 257; // TBD
+long ElSpeed = 500;
+long ElStepsPerDegree = 257; // TBD
 
 // Functions
 void moveAzimuth(bool dir, int deg){
@@ -28,7 +28,7 @@ void moveAzimuth(bool dir, int deg){
   else digitalWrite(DIR_AZIMUTH, HIGH);
 
   // CountStepsPerDegree
-  int totalSteps = AzStepsPerDegree * deg;
+  long totalSteps = AzStepsPerDegree * deg;
   
   // Count number of repetitions
   for (long i = 0; i < totalSteps; i++) {
@@ -48,7 +48,7 @@ void moveElevation(bool dir, int deg){
   else digitalWrite(DIR_ELEVATION, HIGH);
 
   // CountStepsPerDegree
-  int totalSteps = ElStepsPerDegree * deg;
+  long totalSteps = ElStepsPerDegree * deg;
   
   for (long i = 0; i < totalSteps; i++) {
     // 1. Send the HIGH signal (Start of Pulse)
@@ -62,12 +62,19 @@ void moveElevation(bool dir, int deg){
 }
 
 void calibrate(){
-  // Move 
+  
 }
 
 void test(){
   // Function that checks all movements.
-  // Order of command execution: C → MAL360 → MED90 → MAR360 → MEU360 → A090E45
+  // Move 360 degrees Azimuth Left
+  moveAzimuth(true, 360);
+  // Move 90 degrees Elevation Up
+  //moveElevation(true, 90);
+  // Move 360 degrees Azimuth Right
+  moveAzimuth(false, 360);
+  // Move 90 degrees Elevation Down
+  //moveElevation(false, 90);
     
 }
 
@@ -127,12 +134,7 @@ void loop() {
   if(completeCommandDetected){    
     String commandStatus = "ERROR"; // Can be "ERROR", "DONE or "UNKNOWN"
 
-    if(ledON)
-    digitalWrite(ARDUINO_LED, HIGH); // Sed led to HIGH as a visual key
-    else
-    digitalWrite(ARDUINO_LED, LOW);
 
-    ledON = !ledON;
     
     // 2.1. Sanitize the command
     command.trim(); // To avoid empty spaces or unwanted characters.    
@@ -184,12 +186,12 @@ void loop() {
       moveElevation(true, valueElevation);
     
       commandStatus = "DONE";
-    }
-     
-    /*  
-    }else if (){
+    } else if (command.startsWith("C")){
       // calibrate
-    }else if ()
+      test();
+      commandStatus = "DONE";
+    }
+    /*}else if ()
       // test
     */
     

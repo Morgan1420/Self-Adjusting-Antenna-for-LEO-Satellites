@@ -1,8 +1,10 @@
-Satellite: ORBCOMM FM03, Start: 2025-12-08 02:15:20, End: 2025-12-08 02:29:05, Max Elevation: 29.23 deg
-Satellite: ORBCOMM FM04, Start: 2025-12-08 02:15:50, End: 2025-12-08 02:29:20, Max Elevation: 23.52 deg
-Satellite: ORBCOMM FM16, Start: 2025-12-08 02:14:35, End: 2025-12-08 02:28:35, Max Elevation: 22.21 deg
-Satellite: ORBCOMM FM18, Start: 2025-12-08 02:14:20, End: 2025-12-08 02:27:50, Max Elevation: 19.13 deg
-Satellite: ORBCOMM FM14, Start: 2025-12-08 02:14:20, End: 2025-12-08 02:27:50, Max Elevation: 18.25 deg
-Satellite: ORBCOMM FM15, Start: 2025-12-08 02:14:05, End: 2025-12-08 02:26:50, Max Elevation: 14.38 deg
-Satellite: ORBCOMM FM19, Start: 2025-12-08 02:08:05, End: 2025-12-08 02:17:35, Max Elevation: 14.28 deg
-Satellite: ORBCOMM FM20, Start: 2025-12-08 02:14:05, End: 2025-12-08 02:25:50, Max Elevation: 11.04 deg
+Satellite: STARLINK-5528, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 89.56 deg
+Satellite: STARLINK-6213, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:13, Max Elevation: 89.44 deg
+Satellite: STARLINK-30289, Start: 2026-01-08 01:54:13, End: 2026-01-08 02:07:13, Max Elevation: 89.40 deg
+Satellite: STARLINK-6206, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 89.32 deg
+Satellite: STARLINK-30586, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 89.01 deg
+Satellite: STARLINK-6202, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 88.88 deg
+Satellite: STARLINK-6180, Start: 2026-01-08 01:54:13, End: 2026-01-08 02:07:13, Max Elevation: 88.82 deg
+Satellite: STARLINK-30218, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 88.53 deg
+Satellite: STARLINK-6205, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 88.52 deg
+Satellite: STARLINK-6192, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 88.40 deg

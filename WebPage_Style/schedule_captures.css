@@ -1,0 +1,251 @@
+body{
+    margin: 0;
+}
+
+#title-section{
+    width: 100%;
+    height: 100px;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+
+    background-color: #b2acd7;
+
+    color: white;
+}
+#title-section a{
+    width: 50px;
+}
+#title-section a img{
+    width: 50px;
+    height: 50px;
+}
+
+.section {
+	width: 90%;
+  	padding-block: 2em;
+  	padding-inline: 5%;
+
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+#constellation-section{
+    background-color: #f9f9f9;
+}
+#SV-filters-section{
+    background-color: #ffffff;
+}   
+#SV-list-section{
+    background-color: #f9f9f9;
+}
+
+/* Constellation things */
+
+#constellation-list{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.constellation-form{
+    width: auto;
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 3em;
+
+    justify-content: center;
+    margin: 0;
+}
+
+.constellation-button{
+    min-width: 140px;
+    padding: 0.75em 1.5em;
+    border: 2px solid #7870a7;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #7870a7;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.constellation-button:hover{
+    box-shadow: 0 4px 10px rgba(58, 99, 201, 0.25);
+}
+
+.constellation-button.selected{
+    background: #7870a7;
+    color: #ffffff;
+    box-shadow: 0 6px 16px rgba(58, 99, 201, 0.35);
+}
+
+/* SV Filters things */
+form{
+    width: 100%;
+}
+.three-element-row{
+    width: 100%;
+    padding-block: 1em;
+
+    display: flex;
+    justify-content: space-around;
+}
+.filter-option{
+    min-width: 300px;
+    text-align: center;
+    justify-content: center;
+}
+
+.filter-option input[type="checkbox"] {
+    accent-color: #7870a7;
+    width: 15px;
+    height: 15px;
+    margin: 0;
+}
+
+.filter-option input[type="number"],
+.filter-option select {
+    height: 40px;
+    min-width: 100px;
+    padding-inline: 0.75em;
+    
+    border: 2px solid #7870a7;
+    border-radius: 8px;
+    background-color: #ffffff;
+    
+    color: #333333;
+    font-size: 1rem;
+
+    appearance: none;
+    outline: none;
+}
+.filter-option input[type="number"]{
+    min-width: 50px;
+    height: 34px;
+}
+
+select {
+    background-image: linear-gradient(45deg, transparent 50%, #7870a7 50%),
+                      linear-gradient(135deg, #7870a7 50%, transparent 50%);
+    background-position: calc(100% - 18px) calc(50%), calc(100% - 10px) calc(50%);
+    background-repeat: no-repeat;
+    background-size: 8px 8px, 8px 8px;
+}
+
+#submit-filters input{
+    height: 40px;
+    width: 150px;
+
+    background-color: #7870a7;
+
+    border: none;
+    border-radius: 8px;
+
+    color: white;
+    font-size: medium;
+    font-weight: bold;
+}
+
+.filter-option select:hover, #submit-filters input:hover {
+    box-shadow: 0 4px 10px rgba(58, 99, 201, 0.25);
+}
+
+/* SV List things */
+#SV-list-section{
+    padding-block: 3em;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#schedule-form{
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+}
+
+#schedule-form input[type="radio"]{
+    display: none;
+}
+
+#schedule-form label{
+    display: block;
+    width: 100%;
+    padding: 1em 1.5em;
+    margin-bottom: 0.75em;
+    
+    border: 2px solid #7870a7;
+    border-radius: 10px;
+    background-color: #ffffff;
+    
+    color: #333333;
+    font-size: 1rem;
+    font-weight: 500;
+    
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#schedule-form label:hover{
+    background-color: #f5f4f9;
+    box-shadow: 0 4px 12px rgba(120, 112, 167, 0.2);
+    transform: translateX(5px);
+}
+
+#schedule-form input[type="radio"]:checked + label{
+    background-color: #7870a7;
+    color: #ffffff;
+    border-color: #7870a7;
+    box-shadow: 0 6px 16px rgba(120, 112, 167, 0.35);
+}
+
+#schedule-form input[type="radio"]:checked + label small{
+    color: #e8e6f0;
+}
+
+#schedule-form label small{
+    color: #666666;
+    font-size: 0.9rem;
+    font-weight: 400;
+}
+
+#schedule-form input[type="submit"]{
+    margin-top: 1.5em;
+    height: 50px;
+    min-width: 200px;
+    padding-inline: 2em;
+    
+    background-color: #7870a7;
+    
+    border: none;
+    border-radius: 10px;
+    
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#schedule-form input[type="submit"]:hover{
+    background-color: #605a89;
+    box-shadow: 0 6px 16px rgba(96, 90, 137, 0.35);
+    transform: translateY(-2px);
+}
+
+#schedule-form input[type="submit"]:active{
+    transform: translateY(0);
+    box-shadow: 0 3px 8px rgba(96, 90, 137, 0.35);
+}

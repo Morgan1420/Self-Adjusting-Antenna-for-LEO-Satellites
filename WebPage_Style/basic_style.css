@@ -1,17 +1,27 @@
-/* Logo box for alignment */
-.logo-box {
-	width: 300px;
+
+#title-bar{
+	width: 100%;
+	padding: 2em;
+
+	background-color: #333;
+	box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+	background-image: url('/WebPage_Style/images/sky_image.jpg');
+	background-size: cover;
+	background-position: center;
+
 	display: flex;
-	justify-content: center;
+	flex-direction: row;
+	justify-content: space-around;
 	align-items: center;
+
+
+
+	text-align: center;
+	font-size: 1.5em;
+	font-weight: bold;
+	color: black;
 }
-/* Add space between logos */
-div img:first-child {
-	margin-right: 5em;
-}
-#project-title {
-	margin-top: 2em;
-}
+
 body {
 	display: flex;
 	flex-direction: column;
@@ -20,78 +30,100 @@ body {
 	min-height: 100vh;
 	margin: 0;
 }
-p, h1 {
-	text-align: center;
-}
 
-#index-buttons {
-	justify-content: center;
-}
+.section {
+	width: 90%;
+  	padding-block: 2em;
+  	padding-inline: 5%;
 
-div {
-	text-align: center;
-}
-
-hr {
-	width: 90vw;
-	margin: 1em auto 2em auto;
-	display: block;
-}
-
-#index-buttons {
-	justify-content: center;
-}
-
-div {
-	text-align: center;
-}
-
-p, h1, hr {
-	text-align: center;
-}
-#project-authors a:hover {
-	text-decoration: underline;
-}
-/* Make author links look like normal text */
-#project-authors a {
-	color: inherit;
-	text-decoration: none;
-	font-weight: inherit;
-}
-/* Basic styles for index.php */
-#project-title {
-	font-size: 2em;
-	font-weight: bold;
-	margin-bottom: 0.2em;
-}
-
-#project-authors {
-	font-size: 1.1em;
-	color: #555;
-	margin-bottom: 1em;
-}
-
-#index-buttons {
-	margin: 2em 0;
 	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+#introduction-section {
+	background-color: #f9f9f9;
+}
+#schedule-section {
+	background-color: #ffffff;
+}
+#free-control-section {
+	background-color: #f9f9f9;
+}
+#hardware-mount-instructions-section {
+	background-color: #ffffff;
+}
+
+.section-image-container-right {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+}
+.text {
+	width: 60%;
+}
+.image {
+	width: 40%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.section-buttons-container{
+	width: 90%;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
 	gap: 5em;
+	
 }
+.button-box{
+	padding: 1em;
+}
+.button-box button{
+	display: inline-block;
+	width: 200px;
+	height: 50px;
 
-.big-button {
-	background: #e0e0e0;
-	border: 1px solid #bbb;
-	border-radius: 6px;
-	padding: 1em 2em;
-	font-size: 1.1em;
+	background-color: #7870a7;
+	
+	border: none;
+	border-radius: 10px;
+
+	color: white;
+	font-size: 1.2em;	
+	font-style: italic;
+	font-weight: bold;
 	cursor: pointer;
-	transition: background 0.2s;
-	text-align: center;
-	width: 350px;
-	box-sizing: border-box;
-	text-decoration: none;
-	color: black;
 }
 
-.big-button:hover {
-	background: #d0d0d0;
+.link-as-button{
+	display: inline-block;
+	width: 200px;
+	height: 52px;
+	padding-inline: 1.5em;
+	margin-block: 30px;
+
+	background-color: #7870a7;
+	
+	border: none;
+	border-radius: 10px;
+
+	color: white;
+	font-size: 1.2em;	
+	font-style: italic;
+	font-weight: bold;
+	cursor: pointer;
+
+	text-align: center;
+	line-height: 50px; 
+	text-decoration: none;
+}
+
+.logo-box {
+	width: 300px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }

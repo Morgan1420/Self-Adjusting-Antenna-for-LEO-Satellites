@@ -18,6 +18,13 @@ if (isset($_POST['constellation'])) {
 }
 if ($constellation === null || $constellation === '') $constellation = 'S';
 
+// Available constellations and their labels
+$constellation_options = [
+    'S' => 'Starlink',
+    'O' => 'Orbcomm',
+    'I' => 'Iridium'
+];
+
 // Handle the filter form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && (isset($_POST['excludeVisible']) || isset($_POST['elevationMask']) || isset($_POST['SV-to-display']) || isset($_POST['sortBy']))) {
 
@@ -114,76 +121,109 @@ foreach ($sv_array as $line) {
 
 <head>
     <meta charset="UTF-8">
-    <title>Self-Adjusting Antenna for LEO Satellites</title>
-    <link rel="stylesheet" href="WebPage_Style/basic_style.css">
+    <title>ARA</title>
+    <link rel="stylesheet" href="../WebPage_Style/schedule_captures.css">
 </head>
 
 <body>
+    <div id="title-section">
+        <a href="../index.php" class="arrow-button"><img src="../WebPage_Style/images/home_icon.png" alt="Go back"></a>
+        <h1>Schedule a Capture</h1>
+        <a href="./" class="small-button"></a> <!-- Placeholder <a> -->
+    </div>
 
-    <a href="../index.php" class="small-button">Go back</a>
-    <h1>Schedule a Capture</h1>
-    <p>Constellation: <strong><?php
-        $map = ['S' => 'Starlink', 'O' => 'Orbcomm', 'I' => 'Iridium'];
-        echo isset($map[$constellation]) ? htmlspecialchars($map[$constellation]) : htmlspecialchars($constellation);
-    ?></strong></p>
-    <hr>
+    <div id="constellation-section" class="section">
+        <h3>Current constellation:</h3>
+        <div id="constellation-list">
+            <form class="constellation-form" action="/WebPage_Views/schedule_captures.php" method="get">
+                <?php foreach ($constellation_options as $key => $label): ?>
+                    <button
+                        type="submit"
+                        name="constellation"
+                        value="<?php echo htmlspecialchars($key); ?>"
+                        class="constellation-button <?php echo ($constellation === $key) ? 'selected' : ''; ?>"
+                    >
+                        <?php echo htmlspecialchars($label); ?>
+                    </button>
+                <?php endforeach; ?>
+            </form>
+        </div>
+    </div>
 
-    <p>Select one of the following satellites:</p>
+    <div id="SV-filters-section" class="section">
+        <h3>Satellite filters:</h3>
+        <form action="/WebPage_Views/schedule_captures.php" method="post">
+            <input type="hidden" name="constellation" value="<?php echo htmlspecialchars($constellation); ?>">     
+            <div class="three-element-row">
+                <div class="filter-option">
+                    <label for='excludeVisible'>Exclude SV already visible</label>
+                    <input type='checkbox' id='excludeVisible' name='excludeVisible' value='1' <?php if ($excludeVisible) echo 'checked'; ?>>
+                </div>
+                <div class="filter-option">
+                    <label for='excludeDTC'>Exclude DTC SVs</label>
+                    <input type='checkbox' id='excludeDTC' name='excludeDTC' value='1' <?php if ($excludeDTC) echo 'checked'; ?>>
+                </div>
+                <div class="filter-option">
+                    <label for="SV-to-display">SV to display (1-50):</label>
+                    <input type="number" id="SV-to-display" name="SV-to-display" min="1" max="50" value="<?php echo htmlspecialchars($SV_to_display); ?>">
+                </div>
+            </div>
+            <div class="three-element-row">
+                <div class="filter-option">
+                    <label for="elevationMask">Elevation mask:</label>
+                    <input type="number" id="elevationMask" name="elevationMask" min="0" max="90" value="<?php echo htmlspecialchars($elevationMask); ?>"> degrees
+                </div>  
+                <div class="filter-option">
+                    <label for="sortBy">Sort by:</label>
+                    <select name="sortBy" id="sortBy">
+                        <option value="1" <?php if ($sortBy == 1) echo 'selected'; ?>>Max Elevation</option>
+                        <option value="2" <?php if ($sortBy == 2) echo 'selected'; ?>>Starting Time</option>
+                        <option value="3" <?php if ($sortBy == 3) echo 'selected'; ?>>Longer View Window</option>
+                    </select>
+                </div>  
+                <div class="filter-option" id="submit-filters">
+                    <input type="submit" value="Apply filters">
+                </div>
+            
+            </div>
+                            
+            
+        </form>
+    </div>
+    
+    <div id="SV-list-section">
+        <h3>Available Satellites:</h3>
+        <form id="schedule-form" action="/WebPage_Views/capture_process.php" method="post">
+            <input type="hidden" name="constellation" value="<?php echo htmlspecialchars($constellation); ?>">
+            
+            <?php
+            $idx = 0;
+            foreach ($sv_objects as $obj) {
+                $idx++;
+                $safe_name = htmlspecialchars($obj['name'], ENT_QUOTES, 'UTF-8');
+                $safe_start = htmlspecialchars($obj['start'] ?? '', ENT_QUOTES, 'UTF-8');
+                $safe_end = htmlspecialchars($obj['end'] ?? '', ENT_QUOTES, 'UTF-8');
+                $safe_max = isset($obj['max_elevation']) ? htmlspecialchars((string)$obj['max_elevation'], ENT_QUOTES, 'UTF-8') : '';
 
-
-    <hr class="dotted">
-    <b>Filter Satellites</b>
-
-    <!-- Form to filter satellites -->
-    <form action="/WebPage_Views/schedule_captures.php" method="post">
-        <input type="hidden" name="constellation" value="<?php echo htmlspecialchars($constellation); ?>">
-        <label for='excludeVisible'>Exclude SV already visible</label>
-        <input type='checkbox' id='excludeVisible' name='excludeVisible' value='1' <?php if ($excludeVisible) echo 'checked'; ?>>
-        <label for='excludeDTC'>Exclude DTC SVs</label>
-        <input type='checkbox' id='excludeDTC' name='excludeDTC' value='1' <?php if ($excludeDTC) echo 'checked'; ?>>
-        <label for="elevationMask">Elevation mask:</label>
-        <input type="number" id="elevationMask" name="elevationMask" min="0" max="90" value="<?php echo htmlspecialchars($elevationMask); ?>"> degrees
-        <label for="sortBy">Sort by:</label>
-        <select name="sortBy" id="sortBy">
-            <option value="1" <?php if ($sortBy == 1) echo 'selected'; ?>>Max Elevation</option>
-            <option value="2" <?php if ($sortBy == 2) echo 'selected'; ?>>Starting Time</option>
-            <option value="3" <?php if ($sortBy == 3) echo 'selected'; ?>>Longer View Window</option>
-        </select>
-        <label for="SV-to-display">Number of SVs to display (1-50):</label>
-        <input type="number" id="SV-to-display" name="SV-to-display" min="1" max="50" value="<?php echo htmlspecialchars($SV_to_display); ?>">
-        <input type="submit" value="Apply filters">
-    </form>
-    <hr class="dotted">
-
-    <!-- Form to schedule captures -->
-    <form id="schedule-form" action="/WebPage_Views/capture_process.php" method="post">
-        <input type="hidden" name="constellation" value="<?php echo htmlspecialchars($constellation); ?>">
-        <?php
-        $idx = 0;
-        foreach ($sv_objects as $obj) {
-            $idx++;
-            $safe_name = htmlspecialchars($obj['name'], ENT_QUOTES, 'UTF-8');
-            $safe_start = htmlspecialchars($obj['start'] ?? '', ENT_QUOTES, 'UTF-8');
-            $safe_end = htmlspecialchars($obj['end'] ?? '', ENT_QUOTES, 'UTF-8');
-            $safe_max = isset($obj['max_elevation']) ? htmlspecialchars((string)$obj['max_elevation'], ENT_QUOTES, 'UTF-8') : '';
-
-            // radio with data attributes for start/end/max
-            echo "<input type='radio' name='satellite' value='{$safe_name}' id='sv_{$idx}' data-start='{$safe_start}' data-end='{$safe_end}' data-max='{$safe_max}'>";
-            echo "<label for='sv_{$idx}'>" . $safe_name;
-            if ($safe_start !== '') {
-                echo " — <small>From {$safe_start} to {$safe_end}, max {$safe_max}°</small>";
+                // radio with data attributes for start/end/max
+                echo "<input type='radio' name='satellite' value='{$safe_name}' id='sv_{$idx}' data-start='{$safe_start}' data-end='{$safe_end}' data-max='{$safe_max}'>";
+                echo "<label for='sv_{$idx}'>" . $safe_name;
+                if ($safe_start !== '') {
+                    echo " — <small>From {$safe_start} to {$safe_end}, max {$safe_max}°</small>";
+                }
+                echo "</label><br>\n";
             }
-            echo "</label><br>\n";
-        }
-        ?>
+            ?>
 
-        <!-- Hidden fields that will be populated with the chosen satellite's details on submit -->
-        <input type="hidden" name="start" id="selected_start" value="">
-        <input type="hidden" name="end" id="selected_end" value="">
-        <input type="hidden" name="max_elevation" id="selected_max" value="">
+            <!-- Hidden fields that will be populated with the chosen satellite's details on submit -->
+            <input type="hidden" name="start" id="selected_start" value="">
+            <input type="hidden" name="end" id="selected_end" value="">
+            <input type="hidden" name="max_elevation" id="selected_max" value="">
 
-        <input type="submit" value="Schedule Capture">
+            <input type="submit" value="Schedule Capture">
     </form>
+    </div>
+
 
     <script>
         // Before submitting, copy the selected radio's data-* attributes into hidden inputs
