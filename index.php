@@ -49,6 +49,10 @@
                 <input type="hidden" name="constellation" value="I">
                 <button type="submit" class="big-button">Iridium</button>
             </form>
+            <form action="WebPage_Views/schedule_captures.php" method="post" style="display:inline-block; margin:0;" class="button-box">
+                <input type="hidden" name="constellation" value="G">
+                <button type="submit" class="big-button">Globalstar</button>
+            </form>
         </div>
     </div>
     <div id="free-control-section" class="section">

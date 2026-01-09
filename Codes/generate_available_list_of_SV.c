@@ -25,6 +25,7 @@
  *                           'S' or "starlink"   -> Starlink (default)
  *                           'O' or "orbcomm"    -> Orbcomm
  *                           'I' or "iridium"    -> Iridium
+ *                           'G' or "globalstar" -> Globalstar
  *   exclude_visible         1 = exclude passes already in progress, 0 = include
  *   exclude_DTC             1 = exclude satellites with "[DTC]" in their name, 0 = include
  *   min_elevation_deg       Minimum peak elevation (degrees) to consider a pass
@@ -72,6 +73,7 @@ int main(int argc, char *argv[]) {
     const char* url_starlink = "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle";
     const char* url_orbcomm = "https://celestrak.org/NORAD/elements/gp.php?GROUP=orbcomm&FORMAT=tle";
     const char* url_iridium = "https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium&FORMAT=tle";
+    const char* url_globalstar = "https://celestrak.org/NORAD/elements/gp.php?GROUP=globalstar&FORMAT=tle";
 
     // Allow optional first argument to select constellation (S, O, I or names). If provided,
     // the rest of numeric filter args (if any) are expected after it. This keeps backward
@@ -88,11 +90,13 @@ int main(int argc, char *argv[]) {
             if (c == 'S') selected_url = url_starlink;
             else if (c == 'O') selected_url = url_orbcomm;
             else if (c == 'I') selected_url = url_iridium;
+            else if (c == 'G') selected_url = url_globalstar;
             else {
                 // allow full names
                 if (strncasecmp(argv[1], "starlink", 8) == 0) selected_url = url_starlink;
                 else if (strncasecmp(argv[1], "orbcomm", 7) == 0) selected_url = url_orbcomm;
                 else if (strncasecmp(argv[1], "iridium", 7) == 0) selected_url = url_iridium;
+                else if (strncasecmp(argv[1], "globalstar", 10) == 0) selected_url = url_globalstar;
                 else {
                     fprintf(stderr, "Unknown constellation '%s', defaulting to Starlink.\n", argv[1]);
                     selected_url = url_starlink;

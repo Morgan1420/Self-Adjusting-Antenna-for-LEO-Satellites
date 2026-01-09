@@ -22,7 +22,8 @@ if ($constellation === null || $constellation === '') $constellation = 'S';
 $constellation_options = [
     'S' => 'Starlink',
     'O' => 'Orbcomm',
-    'I' => 'Iridium'
+    'I' => 'Iridium',
+    'G' => 'Globalstar'
 ];
 
 // Handle the filter form submission

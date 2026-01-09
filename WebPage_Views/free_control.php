@@ -16,8 +16,45 @@
         <h1>Controlador Lliure</h1>
         <a href="./" class="small-button"></a> <!-- Placeholder <a> -->
     </div>
-    
+<!--
+    <div id="console">
+        <div id="console-buttons-section">
+            <div class="button-element">
+                <div class="button-label">Test</div>
+                <div class="button-button-and-led">
+                    <button class="button-button" title="Run test"><i><b>T</b></i></button>
+                    <div id="led-test" class="led"></div>
+                </div>
+            </div>
 
+            <div class="button-element">
+                <div class="button-label">Calibrate</div>
+                <div class="button-button-and-led">
+                    <button class="button-button" title="Run test"><i><b>C</b></i></button>
+                    <div id="led-test" class="led"></div>
+                </div>
+            </div>
+        </div>
+        <div id="console-display-section">
+            <div id="console-display">
+                <div class="display-row">
+                    <span class="display-label">Az:</span>
+                    <span id="display-azimuth" class="display-value">--.-&deg;</span>
+                </div>
+                <div class="display-row">
+                    <span class="display-label">El:</span>
+                    <span id="display-elevation" class="display-value">--.-&deg;</span>
+                </div>
+
+            </div>
+        </div>
+        <div id="console-arrows-section">
+            <div>
+
+            </div>
+        </div>
+    </div>
+-->
     <div class="console-wrap">
         <div class="console-grid">
             <!-- Left: Calibration -->

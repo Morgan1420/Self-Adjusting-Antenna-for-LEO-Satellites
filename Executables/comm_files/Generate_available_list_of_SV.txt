@@ -1,10 +1,5 @@
-Satellite: STARLINK-5528, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 89.56 deg
-Satellite: STARLINK-6213, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:13, Max Elevation: 89.44 deg
-Satellite: STARLINK-30289, Start: 2026-01-08 01:54:13, End: 2026-01-08 02:07:13, Max Elevation: 89.40 deg
-Satellite: STARLINK-6206, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 89.32 deg
-Satellite: STARLINK-30586, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 89.01 deg
-Satellite: STARLINK-6202, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 88.88 deg
-Satellite: STARLINK-6180, Start: 2026-01-08 01:54:13, End: 2026-01-08 02:07:13, Max Elevation: 88.82 deg
-Satellite: STARLINK-30218, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 88.53 deg
-Satellite: STARLINK-6205, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 88.52 deg
-Satellite: STARLINK-6192, Start: 2026-01-08 01:54:28, End: 2026-01-08 02:07:28, Max Elevation: 88.40 deg
+Satellite: GLOBALSTAR M019, Start: 2026-01-09 11:24:18, End: 2026-01-09 11:50:03, Max Elevation: 83.45 deg
+Satellite: GLOBALSTAR M052, Start: 2026-01-09 11:22:03, End: 2026-01-09 11:30:33, Max Elevation: 27.33 deg
+Satellite: GLOBALSTAR M051, Start: 2026-01-09 11:22:48, End: 2026-01-09 11:48:03, Max Elevation: 24.44 deg
+Satellite: GLOBALSTAR M024, Start: 2026-01-09 11:22:03, End: 2026-01-09 11:41:03, Max Elevation: 14.03 deg
+Satellite: GLOBALSTAR M050, Start: 2026-01-09 11:22:03, End: 2026-01-09 11:38:33, Max Elevation: 12.80 deg

@@ -3,18 +3,19 @@
 #include <unistd.h>
 #include <limits.h>
 
-#include "utils.h"
-#include "download_and_parse_TLE_functions.h"
-#include "coordinates_translation_functions.h"
-#include "arduino_communications.h"
+#include "Satellite_data/utils.h"
+#include "Satellite_data/download_and_parse_TLE_functions.h"
+#include "Satellite_data/coordinates_translation_functions.h"
+#include "Arduino_stuff/arduino_communications.h"
 
 // Compile with:
-// gcc -o main main.c download_and_parse_TLE_functions.c coordinates_translation_functions.c arduino_communications.c -lcurl -L./../SGP4_library -lSGP4 -lm
+// gcc -o process_anenna_movements process_anenna_movements.c Satellite_data/download_and_parse_TLE_functions.c Satellite_data/coordinates_translation_functions.c Arduino_stuff/arduino_communications.c -lcurl -L./../SGP4_library -lSGP4 -lm
 
 // URLs for different constellations
 const char *url_starlink = "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle";
 const char *url_orbcomm = "https://celestrak.org/NORAD/elements/gp.php?GROUP=orbcomm&FORMAT=tle";
 const char *url_iridium = "https://celestrak.org/NORAD/elements/gp.php?GROUP=iridium&FORMAT=tle";
+const char *url_globalstar = "https://celestrak.org/NORAD/elements/gp.php?GROUP=globalstar&FORMAT=tle";
 
 // Helper functions
 void trim_whitespace(char *str) {
@@ -51,6 +52,10 @@ int calculateOrbit(char* satellite_name, char* constellation_name, char ***ardui
         case 'I':
         case 'i':
             url = url_iridium;
+            break;
+        case 'G':
+        case 'g':
+            url = url_globalstar;
             break;
         default:
             fprintf(stderr, "Unknown constellation name: %s\n", constellation_name);
