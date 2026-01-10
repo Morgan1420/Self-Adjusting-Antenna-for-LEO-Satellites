@@ -4,7 +4,8 @@
  * 
  * Backend API for antenna control via moveAntenna executable.
  * Expects POST with:
- *   - action: C (calibrate), T (top), B (bottom), L (left), R (right), O (original)
+ *   - action: T (test), C (calibrate), B (back/undo), O (origin/undo all), F (force 0-90), U (up), D (down), L (left), R (right)
+ *   - step: optional step size for movement commands (U, D, L, R), defaults to 1
  * 
  * Returns JSON with status and current position.
  */
@@ -22,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $action = isset($_POST['action']) ? trim($_POST['action']) : null;
+$step = isset($_POST['step']) ? intval($_POST['step']) : null;
 
 if (!$action || strlen($action) !== 1) {
     http_response_code(400);
@@ -29,8 +31,15 @@ if (!$action || strlen($action) !== 1) {
     exit;
 }
 
+// Validate step parameter if provided
+if ($step !== null && ($step < 1 || $step > 360)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Invalid step parameter. Must be between 1 and 360']);
+    exit;
+}
+
 // Validate action is one of the allowed values
-$valid_actions = ['C', 'T', 'B', 'L', 'R', 'O'];
+$valid_actions = ['T', 'C', 'B', 'O', 'F', 'U', 'D', 'L', 'R'];
 if (!in_array(strtoupper($action), $valid_actions)) {
     http_response_code(400);
     echo json_encode(['error' => 'Invalid action. Must be one of: ' . implode(', ', $valid_actions)]);
@@ -62,7 +71,12 @@ if (!file_exists($executable_path) || !is_executable($executable_path)) {
 }
 
 // Execute the moveAntenna command
-$command = escapeshellarg($executable_path) . ' ' . escapeshellarg($json_path) . ' ' . escapeshellarg($action);
+// New usage: ./moveAntenna <action> [step]
+$command = escapeshellarg($executable_path) . ' ' . escapeshellarg($action);
+if ($step !== null) {
+    $command .= ' ' . escapeshellarg($step);
+}
+
 $output = array();
 $return_var = 0;
 

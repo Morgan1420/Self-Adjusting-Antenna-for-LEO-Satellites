@@ -160,8 +160,8 @@ void loop() {
       else { 
         // Command MEU or MED
         // Extract direction and degrees
-        bool dir = command.indexOf("U") == 2 ? true : false;
-        int deg = command.substring(3, 5).toInt(); // From index 3 (inclusive) to 5 (exclusive)
+        bool dir = command.indexOf("U") == 2 ? false : true;
+        int deg = command.substring(3, 6).toInt(); // From index 3 (inclusive) to 5 (exclusive)
         // Move
         moveElevation(dir, deg); 
       }

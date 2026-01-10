@@ -66,7 +66,7 @@ async function sendAntennaCommand(command, step = null) {
 
     try {
         const formData = new URLSearchParams();
-        formData.append('command', command);
+        formData.append('action', command);
         if (step !== null) {
             formData.append('step', step);
         }
