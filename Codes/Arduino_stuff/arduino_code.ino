@@ -15,11 +15,11 @@
 String command = "";
 bool completeCommandDetected = false; // check 
 
-long AzSpeed = 500; // Miliseconds between on and off, tune for more precision
-long AzStepsPerDegree = 514; // 32000 steps per revolution
+int AzSpeed = 600; // Miliseconds between on and off, tune for more precision
+int AzStepsPerDegree = 152; // 32000 steps per revolution
 
-long ElSpeed = 500;
-long ElStepsPerDegree = 257; // TBD
+int ElSpeed = 600;
+int ElStepsPerDegree = 87; // TBD
 
 // Functions
 void moveAzimuth(bool dir, int deg){
@@ -28,7 +28,7 @@ void moveAzimuth(bool dir, int deg){
   else digitalWrite(DIR_AZIMUTH, HIGH);
 
   // CountStepsPerDegree
-  long totalSteps = AzStepsPerDegree * deg;
+  long totalSteps = (long) AzStepsPerDegree * deg;
   
   // Count number of repetitions
   for (long i = 0; i < totalSteps; i++) {
@@ -48,7 +48,7 @@ void moveElevation(bool dir, int deg){
   else digitalWrite(DIR_ELEVATION, HIGH);
 
   // CountStepsPerDegree
-  long totalSteps = ElStepsPerDegree * deg;
+  int totalSteps = ElStepsPerDegree * deg;
   
   for (long i = 0; i < totalSteps; i++) {
     // 1. Send the HIGH signal (Start of Pulse)
@@ -70,11 +70,11 @@ void test(){
   // Move 360 degrees Azimuth Left
   moveAzimuth(true, 360);
   // Move 90 degrees Elevation Up
-  //moveElevation(true, 90);
+  moveElevation(true, 90);
   // Move 360 degrees Azimuth Right
   moveAzimuth(false, 360);
   // Move 90 degrees Elevation Down
-  //moveElevation(false, 90);
+  moveElevation(false, 90);
     
 }
 
@@ -145,9 +145,7 @@ void loop() {
      * - MARXXX (Move Azimuth Right XXX degrees)
      * - MEUXX (Move Elevation Up XX degrees)
      * - MEDXX (Move Elevation Down XX degrees)
-     * - AXXXEYY (Goto Azimuth XXX and height YY)
-     * - C (Calibrate to Az-0 and El-90)
-     * - T (Test command: Calibrate-MAL360-MEU90-MAR360-MED360-A090E45)*/
+     */
 
     // Movement commands
     if(command.startsWith("M")){
@@ -170,37 +168,10 @@ void loop() {
 
       commandStatus = "DONE";
 
-    // GoTo command
-    } else if (command.startsWith("A") && command.indexOf("E") == 4 && command.length() == 7){      
-      // 1. Extract Azimuth (3 digits: 000-540) and Elevation (2 digits: 00-90)
-      int valueAzimuth = command.substring(1, 4).toInt(); // From index 1 (inclusive) to 4 (exclusive)
-      int valueElevation = command.substring(5, 7).toInt();  // From index 5 (inclusive) to 7 (exclusive)
-
-      // 2. Calibrate to center the device at Az-0 and El-0
-      calibrate();
-      
-      // 3. Move Azimuth first
-      moveAzimuth(true, valueAzimuth);
-      
-      // 4. Move Elevation second
-      moveElevation(true, valueElevation);
-    
-      commandStatus = "DONE";
-    } else if (command.startsWith("C")){
-      // calibrate
-      test();
-      commandStatus = "DONE";
-    }
-    /*}else if ()
-      // test
-    */
-    
-    
-    else{
+    } else{
       // Unknown command recieved
       commandStatus = "UNKNOWN";
     }
-
 
     // Resset the command logic for the next command
     command = "";

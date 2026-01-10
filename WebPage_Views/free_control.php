@@ -8,184 +8,93 @@
     <title>Free Control</title>
     <link rel="stylesheet" href="../WebPage_Style/basic_style.css">
     <link rel="stylesheet" href="../WebPage_Style/free_control.css">
-    
+    <script src="../WebPage_Scripts/free_control.js" defer></script>
 </head>
 <body>
     <div id="title-section">
-        <a href="../index.php" class="arrow-button"><img src="../WebPage_Style/images/home_icon.png" alt="Go back"></a>
+        <a href="../index.php" class="home-button"><img src="../WebPage_Style/images/home_icon.png" alt="Go back"></a>
         <h1>Controlador Lliure</h1>
         <a href="./" class="small-button"></a> <!-- Placeholder <a> -->
     </div>
-<!--
+
     <div id="console">
         <div id="console-buttons-section">
-            <div class="button-element">
-                <div class="button-label">Test</div>
-                <div class="button-button-and-led">
-                    <button class="button-button" title="Run test"><i><b>T</b></i></button>
-                    <div id="led-test" class="led"></div>
+            <div class="horizontal-button-panel">
+                <div class="button-element">
+                    <div class="button-label">Test</div>
+                    <div class="button-button-and-led">
+                        <button id="button-test" class="button-button" title="Run test"><i><b>T</b></i></button>
+                        <div id="led-test" class="led"></div>
+                    </div>
+                </div>
+                <div class="button-element">
+                    <div class="button-label">Calibrate</div>
+                    <div class="button-button-and-led">
+                        <button id="button-calibrate" class="button-button" title="Run calibration"><i><b>C</b></i></button>
+                        <div id="led-calibrate" class="led"></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="button-element">
-                <div class="button-label">Calibrate</div>
-                <div class="button-button-and-led">
-                    <button class="button-button" title="Run test"><i><b>C</b></i></button>
-                    <div id="led-test" class="led"></div>
+            <div class="horizontal-button-panel">
+                <div class="button-element">
+                    <div class="button-label">Undo</div>
+                    <div class="button-button-and-led">
+                        <button id="button-undo" class="button-button" title="Undo last movement"><i><b>B</b></i></button>
+                        <div id="led-undo" class="led"></div>
+                    </div>
+                </div>
+                <div class="button-element">
+                    <div class="button-label">Undo all</div>
+                    <div class="button-button-and-led">
+                        <button id="button-undo-all" class="button-button" title="Return to origin"><i><b>O</b></i></button>
+                        <div id="led-undo-all" class="led"></div>
+                    </div>
                 </div>
             </div>
+            
         </div>
+        
         <div id="console-display-section">
             <div id="console-display">
                 <div class="display-row">
-                    <span class="display-label">Az:</span>
-                    <span id="display-azimuth" class="display-value">--.-&deg;</span>
+                    <span class="display-label">AZ</span>
+                    <span id="display-azimuth" class="display-value"> --.-&deg;</span>
                 </div>
                 <div class="display-row">
-                    <span class="display-label">El:</span>
-                    <span id="display-elevation" class="display-value">--.-&deg;</span>
+                    <span class="display-label">EL</span>
+                    <span id="display-elevation" class="display-value"> --.-&deg;</span>
                 </div>
-
+            </div>
+            <div id="force-zero-ninety">
+                <button id="button-force-zero-ninety">Force 0-90</button>
             </div>
         </div>
         <div id="console-arrows-section">
-            <div>
-
-            </div>
-        </div>
-    </div>
--->
-    <div class="console-wrap">
-        <div class="console-grid">
-            <!-- Left: Calibration -->
-            <div class="cal-block">
-                <span class="cal-label">Calibration</span>
-                <button id="calibrate" class="cal-button" title="Run calibration">Calibrate</button>
-            </div>
-
-            <!-- Center: D-Pad -->
-            <div class="pad-block">
-                <div class="dpad" role="group" aria-label="Antenna directional controls">
-                    <div class="empty"></div>
-                    <button id="up" aria-label="Move up">&#9650;</button>
-                    <div class="empty"></div>
-
-                    <button id="left" aria-label="Move left">&#9664;</button>
-                    <div class="empty"></div>
-                    <button id="right" aria-label="Move right">&#9658;</button>
-
-                    <div class="empty"></div>
-                    <button id="down" aria-label="Move down">&#9660;</button>
-                    <div class="empty"></div>
+            <div id="move-arrows-section">
+                <div class="move-arrows-element">
+                    <div class="button-label">Azimuth</div>
+                    <div class="arrow-button-pair">
+                        <button id="arrow-left" class="arrow-button" title="Move Left">&#9664;</button>
+                        <button id="arrow-right" class="arrow-button" title="Move Right">&#9658;</button>
+                    </div>
+                </div>
+                <div id="led-move" class="led"></div>
+                <div class="move-arrows-element">
+                    <div class="button-label">Elevation</div>
+                    <div class="arrow-button-pair">
+                        <button id="arrow-up" class="arrow-button" title="Move Up">&#9650;</button>
+                        <button id="arrow-down" class="arrow-button" title="Move Down">&#9660;</button>
+                    </div>
                 </div>
             </div>
-
-            <!-- Right: Elevation / Azimuth inputs -->
-            <div class="controls-block">
-                <div class="control-field">
-                    <label for="elevation">Elevation (deg)</label>
-                    <input id="elevation" name="elevation" type="number" placeholder="e.g. 45" min="-90" max="90">
-                </div>
-                <div class="control-field">
-                    <label for="azimuth">Azimuth (deg)</label>
-                    <input id="azimuth" name="azimuth" type="number" placeholder="e.g. 180" min="0" max="360">
-                </div>
+            <div id="move-step-selection-section">
+                <div class="step-slider-label">Step Size</div>
+                <input type="range" id="step-size" min="1" max="20" value="1" step="1">
+                <div id="step-size-value">1</div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Map button IDs to antenna control actions
-        const buttonActions = {
-            'up': 'T',      // Top/Up
-            'down': 'B',    // Bottom/Down
-            'left': 'L',    // Left
-            'right': 'R',   // Right
-            'calibrate': 'C' // Calibrate
-        };
-
-        let isExecuting = false; // Flag to prevent concurrent requests
-
-        // Helper function to disable all control buttons
-        function disableControls() {
-            Object.keys(buttonActions).forEach(id => {
-                const btn = document.getElementById(id);
-                if (btn) btn.disabled = true;
-            });
-            isExecuting = true;
-        }
-
-        // Helper function to enable all control buttons
-        function enableControls() {
-            Object.keys(buttonActions).forEach(id => {
-                const btn = document.getElementById(id);
-                if (btn) btn.disabled = false;
-            });
-            isExecuting = false;
-        }
-
-        // Helper function to update display with current position
-        function updatePositionDisplay(az, el) {
-            const azInput = document.getElementById('azimuth');
-            const elInput = document.getElementById('elevation');
-            if (azInput) azInput.value = az;
-            if (elInput) elInput.value = el;
-        }
-
-        // Send antenna control command via AJAX
-        async function sendAntennaCommand(action) {
-            if (isExecuting) {
-                console.warn('Command already executing, please wait...');
-                return;
-            }
-
-            disableControls();
-
-            try {
-                const formData = new URLSearchParams();
-                formData.append('action', action);
-
-                const response = await fetch('./antenna_control_api.php', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    console.log('Command executed:', result);
-                    updatePositionDisplay(result.currentAz, result.currentEl);
-                } else {
-                    console.error('Command failed:', result.error || result);
-                    alert('Error: ' + (result.error || 'Unknown error'));
-                }
-            } catch (err) {
-                console.error('Network error:', err);
-                alert('Network error: ' + err.message);
-            } finally {
-                enableControls();
-            }
-        }
-
-        // Attach click handlers to all control buttons
-        Object.entries(buttonActions).forEach(([id, action]) => {
-            const btn = document.getElementById(id);
-            if (btn) {
-                btn.addEventListener('click', () => {
-                    sendAntennaCommand(action);
-                });
-            }
-        });
-
-        // Load initial position on page load
-        window.addEventListener('load', async () => {
-            try {
-                const response = await fetch('./antenna_control_api.php?get_status=1');
-                // Since we only support POST, this won't work; instead read from a status endpoint
-                // For now, just set placeholders
-                console.log('Page loaded, antenna status endpoint not yet implemented for GET');
-            } catch (err) {
-                console.warn('Could not load initial status:', err);
-            }
-        });
-    </script>
+</body>
+</html>

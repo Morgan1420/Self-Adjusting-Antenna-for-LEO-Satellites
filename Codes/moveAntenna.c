@@ -2,12 +2,12 @@
  * moveAntenna.c
  *
  * Usage: ./moveAntenna <path_to_json> <action>
- *   action: one of C (calibrate), T (top/up), B (bottom/down), L (left), R (right), O (original/return)
+ *   action: one of C (calibrate), T (top/up), B (bottom/down), L (left), R (right), O (original/return), S (test)
  *
  * Behavior:
  *  - Reads the JSON file (expects fields `currentAz` and `currentEl` and `LastMovements` array)
  *  - Validates the requested action and clamps against allowed ranges
- *  - Constructs an Arduino command (uses absolute goto AXXXEYY format or 'C' for calibrate)
+ *  - Constructs Arduino commands (MAR, MAL, MEU, MED for relative movements)
  *  - Finds and opens the Arduino serial port using existing helpers in Arduino_stuff
  *  - Sends the command and waits briefly for a reply line ("DONE" or other)
  *  - Updates the JSON file: writes new `currentAz`, `currentEl` and appends a record to `LastMovements`
@@ -16,8 +16,11 @@
  *   gcc -o moveAntenna moveAntenna.c Arduino_stuff/arduino_communications.c -IArduino_stuff -Wall -Wextra
  *
  * Examples:
- *   # Calibrate (set to 0,0)
+ *   # Calibrate (move to Az=0, El=90)
  *   ./moveAntenna ../Codes/examplejson.json C
+ *
+ *   # Test sequence (360 left, 90 up, 360 right, 90 down)
+ *   ./moveAntenna ../Codes/examplejson.json S
  *
  *   # Move left by one step (AZ_STEP)
  *   ./moveAntenna ../Codes/examplejson.json L
@@ -33,7 +36,7 @@
  *
  * Notes:
  *  - This file depends on `Arduino_stuff/arduino_communications.h` and its implementation.
- *  - Azimuth valid range: 0..540, Elevation valid range: 0..90
+ *  - Azimuth valid range: -360..360, Elevation valid range: 0..90
  */
 
 #include <stdio.h>
@@ -168,9 +171,130 @@ static int read_line_with_timeout(int fd, char *buf, size_t buflen, int timeout_
     return (int)idx;
 }
 
+/* Helper function to send a command to Arduino and update the JSON file */
+static int send_command_and_update_json(const char *command, const char *json_path, int newAz, int newEl) {
+    // Find Arduino port
+    char port_path[256];
+    if (find_arduino_port(port_path, sizeof(port_path)) != 0) {
+        fprintf(stderr, "No Arduino serial device found.\n");
+        return -1;
+    }
+
+    int fd = open_and_configure_port(port_path, B9600);
+    if (fd < 0) {
+        fprintf(stderr, "Failed to open serial port %s\n", port_path);
+        return -1;
+    }
+
+    // Wait for initial response
+    char reply[128] = {0};
+    int rr = read_line_with_timeout(fd, reply, sizeof(reply), 5);
+    if (rr > 0) {
+        fprintf(stderr, "Arduino initial reply: %s\n", reply);
+    }
+
+    // Send command
+    char cmd_with_nl[64];
+    snprintf(cmd_with_nl, sizeof(cmd_with_nl), "%s\n", command);
+    printf("Sending: %s", cmd_with_nl);
+    ssize_t w = write(fd, cmd_with_nl, strlen(cmd_with_nl));
+    if (w < 0) {
+        fprintf(stderr, "Failed to write to serial port: %s\n", strerror(errno));
+        close(fd);
+        return -1;
+    }
+    tcdrain(fd);
+
+    // Wait for response
+    reply[0] = '\0';
+    rr = read_line_with_timeout(fd, reply, sizeof(reply), 5);
+    if (rr > 0) {
+        fprintf(stderr, "Arduino reply: %s\n", reply);
+    }
+
+    close(fd);
+
+    // Update JSON file
+    char *json = read_file_alloc(json_path);
+    if (!json) {
+        fprintf(stderr, "Failed to read JSON for update\n");
+        return -1;
+    }
+
+    char *inner = extract_last_movements_inner(json);
+    
+    // Build new item for LastMovements
+    char new_item[128];
+    snprintf(new_item, sizeof(new_item), "\"%s\"", command);
+
+    // Parse existing entries
+    char entries[2048] = {0};
+    int has_entries = 0;
+    
+    if (inner && strlen(inner) > 0) {
+        const char *p = inner;
+        while (*p) {
+            while (*p && (isspace((unsigned char)*p) || *p == ',')) ++p;
+            if (!*p) break;
+            
+            if (*p == '"') {
+                const char *start = p;
+                ++p;
+                while (*p && *p != '"') ++p;
+                if (*p == '"') {
+                    ++p;
+                    size_t len = (size_t)(p - start);
+                    if (len > 2) {
+                        if (has_entries) strcat(entries, ", ");
+                        strncat(entries, start, len);
+                        has_entries = 1;
+                    }
+                }
+            } else {
+                ++p;
+            }
+        }
+    }
+    
+    // Build final entry list
+    char *new_last_inner = NULL;
+    if (has_entries) {
+        asprintf(&new_last_inner, "%s, %s", entries, new_item);
+    } else {
+        asprintf(&new_last_inner, "%s", new_item);
+    }
+
+    // Write updated JSON
+    FILE *out = fopen(json_path, "w");
+    if (!out) {
+        fprintf(stderr, "Failed to open JSON for writing: %s\n", strerror(errno));
+        free(json);
+        free(inner);
+        free(new_last_inner);
+        return -1;
+    }
+
+    fprintf(out, "{\n");
+    fprintf(out, "  \"currentAz\": %d,\n", newAz);
+    fprintf(out, "  \"currentEl\": %d,\n", newEl);
+    fprintf(out, "  \"LastMovements\": [\n");
+    if (new_last_inner && strlen(new_last_inner) > 0) {
+        fprintf(out, "    %s\n", new_last_inner);
+    }
+    fprintf(out, "  ]\n");
+    fprintf(out, "}\n");
+    fclose(out);
+
+    free(json);
+    free(inner);
+    free(new_last_inner);
+    
+    return 0;
+}
+
 int main(int argc, char **argv) {
     if (argc != 3) {
-        fprintf(stderr, "Usage: %s <path_to_json> <action (C|T|B|L|R)>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <path_to_json> <action (C|S|T|B|L|R|O)>\n", argv[0]);
         return 2;
     }
 
@@ -180,7 +304,7 @@ int main(int argc, char **argv) {
     action = (char)toupper((unsigned char)action);
 
     // Validate action
-    if (!(action == 'C' || action == 'T' || action == 'B' || action == 'L' || action == 'R' || action == 'O')) {
+    if (!(action == 'C' || action == 'S' || action == 'T' || action == 'B' || action == 'L' || action == 'R' || action == 'O')) {
         fprintf(stderr, "Unknown action '%c'\n", action);
         return 4;
     }
@@ -311,10 +435,117 @@ int main(int argc, char **argv) {
         free(json);
         free(inner);
         return 0;
+    } else if (action == 'S') {
+        // Test sequence: 360 left, 90 up, 360 right, 90 down
+        fprintf(stderr, "Starting test sequence...\n");
+        
+        // Move 360 degrees left
+        fprintf(stderr, "Moving 360 degrees left...\n");
+        for (int i = 0; i < 360; i++) {
+            if (send_command_and_update_json("MAL001", json_path, curAz - (i + 1), curEl) != 0) {
+                fprintf(stderr, "Test failed during left movement\n");
+                free(json);
+                return 10;
+            }
+        }
+        curAz -= 360;
+        
+        // Move 90 degrees up
+        fprintf(stderr, "Moving 90 degrees up...\n");
+        for (int i = 0; i < 90; i++) {
+            if (send_command_and_update_json("MEU01", json_path, curAz, curEl + (i + 1)) != 0) {
+                fprintf(stderr, "Test failed during up movement\n");
+                free(json);
+                return 11;
+            }
+        }
+        curEl += 90;
+        
+        // Move 360 degrees right
+        fprintf(stderr, "Moving 360 degrees right...\n");
+        for (int i = 0; i < 360; i++) {
+            if (send_command_and_update_json("MAR001", json_path, curAz + (i + 1), curEl) != 0) {
+                fprintf(stderr, "Test failed during right movement\n");
+                free(json);
+                return 12;
+            }
+        }
+        curAz += 360;
+        
+        // Move 90 degrees down
+        fprintf(stderr, "Moving 90 degrees down...\n");
+        for (int i = 0; i < 90; i++) {
+            if (send_command_and_update_json("MED01", json_path, curAz, curEl - (i + 1)) != 0) {
+                fprintf(stderr, "Test failed during down movement\n");
+                free(json);
+                return 13;
+            }
+        }
+        curEl -= 90;
+        
+        fprintf(stderr, "Test sequence completed successfully.\n");
+        free(json);
+        return 0;
     } else if (action == 'C') {
-        // Calibrate: set to 0,0 (note: adjust if you prefer 0/90)
-        newAz = 0;
-        newEl = 0;
+        // Calibrate: move to Az=0, El=90
+        fprintf(stderr, "Starting calibration to Az=0, El=90...\n");
+        
+        int targetAz = 0;
+        int targetEl = 90;
+        
+        // Move azimuth to 0
+        if (curAz < targetAz) {
+            int steps = targetAz - curAz;
+            fprintf(stderr, "Moving %d degrees right to reach Az=0...\n", steps);
+            for (int i = 0; i < steps; i++) {
+                if (send_command_and_update_json("MAR001", json_path, curAz + (i + 1), curEl) != 0) {
+                    fprintf(stderr, "Calibration failed during azimuth adjustment\n");
+                    free(json);
+                    return 14;
+                }
+            }
+            curAz = targetAz;
+        } else if (curAz > targetAz) {
+            int steps = curAz - targetAz;
+            fprintf(stderr, "Moving %d degrees left to reach Az=0...\n", steps);
+            for (int i = 0; i < steps; i++) {
+                if (send_command_and_update_json("MAL001", json_path, curAz - (i + 1), curEl) != 0) {
+                    fprintf(stderr, "Calibration failed during azimuth adjustment\n");
+                    free(json);
+                    return 15;
+                }
+            }
+            curAz = targetAz;
+        }
+        
+        // Move elevation to 90
+        if (curEl < targetEl) {
+            int steps = targetEl - curEl;
+            fprintf(stderr, "Moving %d degrees up to reach El=90...\n", steps);
+            for (int i = 0; i < steps; i++) {
+                if (send_command_and_update_json("MEU01", json_path, curAz, curEl + (i + 1)) != 0) {
+                    fprintf(stderr, "Calibration failed during elevation adjustment\n");
+                    free(json);
+                    return 16;
+                }
+            }
+            curEl = targetEl;
+        } else if (curEl > targetEl) {
+            int steps = curEl - targetEl;
+            fprintf(stderr, "Moving %d degrees down to reach El=90...\n", steps);
+            for (int i = 0; i < steps; i++) {
+                if (send_command_and_update_json("MED01", json_path, curAz, curEl - (i + 1)) != 0) {
+                    fprintf(stderr, "Calibration failed during elevation adjustment\n");
+                    free(json);
+                    return 17;
+                }
+            }
+            curEl = targetEl;
+        }
+        
+        fprintf(stderr, "Calibration completed: Az=%d, El=%d\n", curAz, curEl);
+        free(json);
+        return 0;
     } else if (action == 'L') {
         newAz = curAz - AZ_STEP;
         if (newAz < AZ_MIN) newAz = AZ_MIN;
