@@ -15,6 +15,36 @@ header('Content-Type: application/json');
 $json_path = '../Executables/comm_files/antennaStatus.json';
 $executable_path = '../Executables/moveAntenna';
 
+// Handle GET request for status
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['get_status'])) {
+    if (!file_exists($json_path)) {
+        http_response_code(404);
+        echo json_encode(['error' => 'Status file not found']);
+        exit;
+    }
+    
+    $json_content = @file_get_contents($json_path);
+    if (!$json_content) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Failed to read status file']);
+        exit;
+    }
+    
+    $json_data = json_decode($json_content, true);
+    if (!$json_data) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Invalid JSON format']);
+        exit;
+    }
+    
+    echo json_encode([
+        'success' => true,
+        'currentAz' => $json_data['currentAz'] ?? 0,
+        'currentEl' => $json_data['currentEl'] ?? 0
+    ]);
+    exit;
+}
+
 // Validate inputs
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(400);
