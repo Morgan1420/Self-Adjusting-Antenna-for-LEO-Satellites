@@ -19,7 +19,7 @@ int AzSpeed = 600; // Miliseconds between on and off, tune for more precision
 int AzStepsPerDegree = 152; // 32000 steps per revolution
 
 int ElSpeed = 600;
-int ElStepsPerDegree = 87; // TBD
+int ElStepsPerDegree = 85; // TBD
 
 // Functions
 void moveAzimuth(bool dir, int deg){

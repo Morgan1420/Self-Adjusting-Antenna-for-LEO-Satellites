@@ -169,8 +169,8 @@ int calculateOrbitAndGenerateCommands(char* satellite_name, char* constellation_
             continue;
         }
 
-        // Schedule capture once when elevation crosses >= 40 deg
-        if (!capture_scheduled && elevation_deg >= 1.0) {
+        // Schedule capture once when elevation crosses >= 30 deg
+        if (!capture_scheduled && elevation_deg >= 30.0) {
             cmds = realloc(cmds, (cmd_count + 1) * sizeof(char*));
             cmds[cmd_count++] = strdup("C");
             cmds = realloc(cmds, (cmd_count + 1) * sizeof(char*));
@@ -339,9 +339,9 @@ int main(int argc, char *argv[]) {
     char *slash = strrchr(exe_full, '/');
     if (slash) {
         *slash = '\0';
-        snprintf(script_path, sizeof(script_path), "%s/_capture_script.py", exe_full);
+        snprintf(script_path, sizeof(script_path), "%s/capture_files/_capture_script.py", exe_full);
     } else {
-        snprintf(script_path, sizeof(script_path), "./_capture_script.py");
+        snprintf(script_path, sizeof(script_path), "./capture_files/_capture_script.py");
     }
 
     // Llegim el fitxer JSON
@@ -401,7 +401,7 @@ int main(int argc, char *argv[]) {
             if (strcmp(cmd, "C") == 0) {
                 pid_t pid = fork();
                 if (pid == 0) {
-                    execlp("python3", "python3", script_path, "2", (char*)NULL);
+                    execlp("python3", "python3", script_path, "30", (char*)NULL);
                     _exit(127);
                 } else if (pid < 0) {
                     fprintf(stderr, "Failed to start capture process\n");

@@ -1,1 +1,3 @@
 # ./SV_Related_Code/Generate_available_SV_data/ # Uncomment when code is done
+./Executables/capture_files/data
+./Executables/capture_files/__pycache__

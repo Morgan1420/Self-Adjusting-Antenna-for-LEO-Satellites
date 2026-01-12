@@ -2,6 +2,7 @@ from time import time, sleep
 from math import degrees
 from datetime import datetime
 import os
+import sys
 import helpersGlobalstar
 
 
@@ -10,9 +11,8 @@ import helpersGlobalstar
 min_elevation = -90 # 75 para directiva in degrees
 
 #Recording parameters
-record_length = 0.5 # seconds
+record_length = float(sys.argv[1]) if len(sys.argv) > 1 else 0.5  # seconds (from CLI argument or default)
 files_per_satellite = 1 # number of recordings per satellite
-record_interval = 5 # seconds between the start of each recording
 total_file_count = 1 # num total of recordings
 
 #TLE file parameters
@@ -56,7 +56,8 @@ biastee = conf_params['biastee']
 def main_loop(total_file_count: int):
     
     # Create directory to store the data
-    directory= "./data/" + datetime.now().strftime('%Y%m%d%H%M%S')
+    currentDir = os.path.dirname(os.path.abspath(__file__))
+    directory= os.path.join(currentDir, "data", datetime.now().strftime('%Y%m%d%H%M%S'))
     os.makedirs(directory, exist_ok=True)
     
     

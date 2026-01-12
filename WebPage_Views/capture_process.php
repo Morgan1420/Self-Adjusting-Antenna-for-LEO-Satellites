@@ -7,8 +7,8 @@
 
 
 // Define the paths to the comms file and executable
-$file_path = '/../Executables/comm_files/Process_antenna_movements.txt';
-$executable_path = '/../Executables/Process_antenna_movements';
+$file_path = '/../Executables/comm_files/process_antenna_movements.txt';
+$executable_path = '/../Executables/process_antenna_movements';
 
 // Helper: safe fetch of POST values
 function post_val($k) {

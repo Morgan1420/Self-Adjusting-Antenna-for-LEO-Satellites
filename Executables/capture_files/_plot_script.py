@@ -17,7 +17,7 @@ def plot_from_disk(filename):
 
     # 2. Pick a "Slice" to look at (e.g., the first 0.1 seconds)
     # This prevents the plotting math from freezing your CPU
-    plot_seconds = 0.1 
+    plot_seconds = 5.0
     num_to_plot = int(plot_seconds * fs)
     
     # Grab just the slice we want
@@ -42,7 +42,7 @@ def plot_from_disk(filename):
     ax1.grid(True)
 
     # Spectrogram (Waterfall)
-    f_s, t_s, Sxx = signal.spectrogram(iq, fs, nperseg=1024)
+    f_s, t_s, Sxx = signal.spectrogram(iq, fs, nperseg=2048)
     f_s = np.fft.fftshift(f_s) + fc
     Sxx = np.fft.fftshift(Sxx, axes=0)
     ax2.pcolormesh(t_s, f_s/1e9, 10 * np.log10(Sxx), shading='gouraud', cmap='viridis')
