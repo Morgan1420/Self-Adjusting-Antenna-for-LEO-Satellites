@@ -1,10 +1,4 @@
-Satellite: GLOBALSTAR M015, Start: 2026-01-10 11:56:49, End: 2026-01-10 12:20:04, Max Elevation: 54.77 deg
-Satellite: GLOBALSTAR M044, Start: 2026-01-10 11:56:49, End: 2026-01-10 12:10:19, Max Elevation: 49.02 deg
-Satellite: GLOBALSTAR M052, Start: 2026-01-10 11:56:49, End: 2026-01-10 12:14:04, Max Elevation: 51.41 deg
-Satellite: GLOBALSTAR M048, Start: 2026-01-10 11:56:49, End: 2026-01-10 12:11:19, Max Elevation: 56.24 deg
-Satellite: GLOBALSTAR M034, Start: 2026-01-10 11:56:49, End: 2026-01-10 12:12:34, Max Elevation: 48.07 deg
-Satellite: GLOBALSTAR M062, Start: 2026-01-10 11:56:49, End: 2026-01-10 12:07:19, Max Elevation: 47.00 deg
-Satellite: GLOBALSTAR M060, Start: 2026-01-10 11:56:49, End: 2026-01-10 12:10:34, Max Elevation: 46.80 deg
-Satellite: GLOBALSTAR M072, Start: 2026-01-10 11:56:49, End: 2026-01-10 12:19:49, Max Elevation: 58.53 deg
-Satellite: GLOBALSTAR M073, Start: 2026-01-10 11:56:49, End: 2026-01-10 12:11:04, Max Elevation: 41.44 deg
-Satellite: GLOBALSTAR M092, Start: 2026-01-10 11:56:49, End: 2026-01-10 12:11:19, Max Elevation: 41.43 deg
+Satellite: GLOBALSTAR M064, Start: 2026-01-12 19:44:34, End: 2026-01-12 20:10:19, Max Elevation: 45.19 deg
+Satellite: GLOBALSTAR M095, Start: 2026-01-12 19:45:04, End: 2026-01-12 20:03:04, Max Elevation: 15.02 deg
+Satellite: GLOBALSTAR M078, Start: 2026-01-12 19:45:19, End: 2026-01-12 20:02:04, Max Elevation: 12.37 deg
+Satellite: GLOBALSTAR M097, Start: 2026-01-12 19:48:19, End: 2026-01-12 20:11:34, Max Elevation: 84.60 deg

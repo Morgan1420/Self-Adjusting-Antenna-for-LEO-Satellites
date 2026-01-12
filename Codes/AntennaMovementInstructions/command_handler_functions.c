@@ -10,6 +10,7 @@
 #include "JSON_related_functions.h"
 #include "utils.h"
 #include "../Arduino_stuff/arduino_communications.h"
+#include "../AntennaMovementInstructions/utils.h"
 
 #define AZ_MIN -360
 #define AZ_MAX 360
@@ -281,25 +282,80 @@ int handle_test_action(const char *json_path, int curAz, int curEl) {
     return 0;
 }
 
-// Action handler: Calibrate to fixed 0,90 (no motion yet)
+// Action handler: Calibrate to 0,90
 int handle_calibrate_action(const char *json_path, int curAz, int curEl) {
     (void)curAz;
     (void)curEl;
     fprintf(stderr, "Calibration (placeholder): setting Az=0, El=90 in JSON only.\n");
 
-    FILE *out = fopen(json_path, "w");
-    if (!out) {
-        fprintf(stderr, "Failed to open JSON for writing during calibration.\n");
+    // Read the JSON file
+    char *json = read_file_alloc(json_path);
+    if (!json) {
+        fprintf(stderr, "Failed to read JSON file '%s'\n", json_path);
         return 14;
     }
 
-    fprintf(out, "{\n");
-    fprintf(out, "  \"currentAz\": 0,\n");
-    fprintf(out, "  \"currentEl\": 90,\n");
-    fprintf(out, "  \"LastMovements\": [\n");
-    fprintf(out, "  ]\n");
-    fprintf(out, "}\n");
+    FILE *out = fopen(json_path, "w");
+    if (!out) {
+        fprintf(stderr, "Failed to open JSON for writing during calibration.\n");
+        free(json);
+        return 14;
+    }
+
+    // Read current azimuth and elevation from JSON
+    int currentAz = 0, currentEl = 0;
+    if (parse_json_position(json, &currentAz, &currentEl) == 0) {
+        fprintf(stderr, "Current position before calibration: Az=%d, El=%d\n", currentAz, currentEl);
+    }
+
+    // Calculate required movements to reach Az=0, El=90
+    int azimuth_correction = -currentAz;
+    int elevation_correction = 90 - currentEl;
+
+    // Create movement commands
+    char az_command[32];
+    char el_command[32];
+    
+    int abs_az = abs(azimuth_correction);
+    if (abs_az > 999) abs_az = 999;
+    int abs_el = abs(elevation_correction);
+    if (abs_el > 99) abs_el = 99;
+    
+    if (azimuth_correction > 0) {
+        snprintf(az_command, sizeof(az_command), "MAR%03d", abs_az);
+    } else if (azimuth_correction < 0) {
+        snprintf(az_command, sizeof(az_command), "MAL%03d", abs_az);
+    } else {
+        snprintf(az_command, sizeof(az_command), "MAR000");
+    }
+    
+    if (elevation_correction > 0) {
+        snprintf(el_command, sizeof(el_command), "MEU%03d", abs_el);
+    } else if (elevation_correction < 0) {
+        snprintf(el_command, sizeof(el_command), "MED%03d", abs_el);
+    } else {
+        snprintf(el_command, sizeof(el_command), "MEU000");
+    }
+
+    // Send commands to Arduino
+    // Move azimuth
+    if (send_command_and_update_json(az_command, json_path, 0, currentEl) != 0) {
+        fprintf(stderr, "Calibration failed during azimuth movement\n");
+        fclose(out);
+        free(json);
+        return 10;
+    }
+    // Move elevation
+    if (send_command_and_update_json(el_command, json_path, 0, 90) != 0) {
+        fprintf(stderr, "Calibration failed during elevation movement\n");
+        fclose(out);
+        free(json);
+        return 11;
+    }
+    
+    
     fclose(out);
+    free(json);
 
     fprintf(stderr, "Calibration completed: Az=0, El=90\n");
     return 0;

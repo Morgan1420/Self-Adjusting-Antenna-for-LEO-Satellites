@@ -1,0 +1,8 @@
+set frequency rx 2486.1M
+set bandwidth rx 2M
+set samplerate rx 4M
+set agc rx off
+set gain rx 60
+set biastee rx off
+
+#set clock_ref enable
