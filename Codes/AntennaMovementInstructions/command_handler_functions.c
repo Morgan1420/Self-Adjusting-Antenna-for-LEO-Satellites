@@ -132,7 +132,7 @@ int handle_back_action(const char *json, const char *json_path) {
     }
     
     char reply[128] = {0};
-    int rr = read_line_with_timeout(fd, reply, sizeof(reply), 5);
+    int rr = read_line_with_timeout(fd, reply, sizeof(reply), 30);
     if (rr > 0) {
         fprintf(stderr, "Arduino reply: %s\n", reply);
     }
@@ -148,7 +148,7 @@ int handle_back_action(const char *json, const char *json_path) {
     tcdrain(fd);
 
     reply[0] = '\0';
-    rr = read_line_with_timeout(fd, reply, sizeof(reply), 5);
+    rr = read_line_with_timeout(fd, reply, sizeof(reply), 30);
     if (rr > 0) {
         fprintf(stderr, "Arduino reply: %s\n", reply);
     }
@@ -338,21 +338,32 @@ int handle_calibrate_action(const char *json_path, int curAz, int curEl) {
     }
 
     // Send commands to Arduino
-    // Move azimuth
-    if (send_command_and_update_json(az_command, json_path, 0, currentEl) != 0) {
+    char action = '-';
+    if(azimuth_correction < 0) action = 'L';
+    else if(azimuth_correction > 0) action = 'R';
+
+    if (handle_movement_action(action , azimuth_correction, json, json_path, currentAz, curEl)) {
         fprintf(stderr, "Calibration failed during azimuth movement\n");
         fclose(out);
         free(json);
         return 10;
+
     }
-    // Move elevation
-    if (send_command_and_update_json(el_command, json_path, 0, 90) != 0) {
+
+    currentAz = currentAz + azimuth_correction;
+    action = '-';
+    if(elevation_correction < 0) action = 'D';
+    else if(elevation_correction > 0) action = 'U';
+
+    if (handle_movement_action(action , elevation_correction, json, json_path, currentAz, currentEl)) {
         fprintf(stderr, "Calibration failed during elevation movement\n");
         fclose(out);
         free(json);
         return 11;
     }
     
+
+    currentEl = currentEl + elevation_correction;
     
     fclose(out);
     free(json);
@@ -435,7 +446,7 @@ int handle_movement_action(char action, int step, const char *json, const char *
     }
 
     char reply[128] = {0};
-    int rr = read_line_with_timeout(fd, reply, sizeof(reply), 5);
+    int rr = read_line_with_timeout(fd, reply, sizeof(reply), 30);
     if (rr > 0) {
         fprintf(stderr, "Arduino reply: %s\n", reply);
     } else {
@@ -452,7 +463,7 @@ int handle_movement_action(char action, int step, const char *json, const char *
     tcdrain(fd);
 
     reply[0] = '\0';
-    rr = read_line_with_timeout(fd, reply, sizeof(reply), 5);
+    rr = read_line_with_timeout(fd, reply, sizeof(reply), 30);
     if (rr > 0) {
         fprintf(stderr, "Arduino reply: %s\n", reply);
     } else {

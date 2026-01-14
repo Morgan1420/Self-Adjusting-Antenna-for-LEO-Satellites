@@ -1,4 +1,3 @@
-import ephem
 import os
 
 # Function that cleans the TLE file
@@ -12,16 +11,6 @@ def clean_tle_file(file_path):
     # Write cleaned lines back to the same file
     with open(file_path, 'w') as outfile:
         outfile.writelines(cleaned_lines)
-
-# Function that sets the observer 
-def setObserver(latitude:int, longitude:int, elevation:int):
-	observer = ephem.Observer()
-	observer.lat = str(latitude)
-	observer.lon = str(longitude)
-	observer.elevation = elevation
-
-	print(f"Observer set to: Latitude = {observer.lat}, Longitude = {observer.lon}, Elevation = {observer.elevation}m")
-	return observer
 
 def tle_of_sat(TLE_path: str, directory: str, sat):
 

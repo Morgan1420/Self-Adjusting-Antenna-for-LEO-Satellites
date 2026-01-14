@@ -90,7 +90,7 @@
             </div>
             <div id="move-step-selection-section">
                 <div class="step-slider-label">Step Size</div>
-                <input type="range" id="step-size" min="1" max="20" value="1" step="1">
+                <input type="range" id="step-size" min="1" max="90" value="1" step="1">
                 <div id="step-size-value">1</div>
             </div>
         </div>

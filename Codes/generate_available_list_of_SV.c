@@ -14,9 +14,8 @@
  * hard-coded observer location.
  *
  * Build:
- *   gcc -o main generate_available_list_of_SV.c Satellite_data/download_and_parse_TLE_functions.c Satellite_data/coordinates_translation_functions.c \
- *       -lcurl -L SGP4_library -lSGP4 -lm
- *
+ *   gcc -o main generate_available_list_of_SV.c Satellite_data/download_and_parse_TLE_functions.c Satellite_data/coordinates_translation_functions.c -lcurl -L SGP4_library -lSGP4 -lm
+ 
  * Usage:
  *   ./main [CONST] [exclude_visible] [exclude_DTC] [min_elevation_deg] [sort_option] [num_to_display]
  *
@@ -60,6 +59,13 @@ void trim_whitespace(char *str) {
     while (end >= str && isspace((unsigned char)*end)) *end-- = '\0';
 }
 
+void printTime_t(char* textBefore, time_t time){
+    char time_str[50];
+    struct tm *time_tm = localtime(&time);
+    strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", time_tm);
+    printf("%s %s\n", textBefore, time_str);
+}
+
 // Define the observer's location (Sant Vicenç dels Horts, Catalonia, Spain)
 GeodeticPosition observer = {
     .latitude_deg = 41.393552,
@@ -81,6 +87,8 @@ int main(int argc, char *argv[]) {
     int arg_offset = 0; // number of leading args consumed for constellation
     const char *selected_url = url_starlink; // default
     char constellation = 'S';
+    
+    // Parse constellation argument if provided
     if (argc > 1) {
         // If argv[1] is non-numeric (starts with a letter), treat it as constellation
         if (isalpha((unsigned char)argv[1][0])) {
@@ -107,6 +115,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    
+
     // 1) Download TLE data for the selected constellation
     char* tle_data_string = download_tles(selected_url);
     if (!tle_data_string) {
@@ -126,6 +136,12 @@ int main(int argc, char *argv[]) {
         double observer_ecef[3];
         geodetic_to_ecef(&observer, &observer_ecef[0], &observer_ecef[1], &observer_ecef[2]);
 
+        // Get current UTC time
+        // time() returns time_t in UTC (seconds since Unix epoch)
+        time_t utc_time_unix = time(NULL);
+        
+        printTime_t("Current UTC time:", utc_time_unix);
+
         // Define a list to store satellite passes
         Pass* passes = NULL;
         int pass_count = 0;
@@ -142,19 +158,24 @@ int main(int argc, char *argv[]) {
                 free(satellites);
                 return 1;
             }
+            
 
-            time_t current_time_unix = time(NULL);
             bool is_in_pass = false;
             time_t pass_start_unix = 0;
             double max_elevation_in_pass = 0.0;
 
-            // 3.2) Simulate for the next 30 minutes in 15-second intervals
-            for (double t_min = 0; t_min < 30; t_min += 0.25) { // 30 minutes, 0.25 minute step
-                double tsince = t_min; // minutes since epoch
+            // Get current julian date and TLE epoch for tsince calculation
+            double current_jd = unix_to_julian(utc_time_unix);
+            double jd_epoch = satellites[i].tle.rec.jdsatepoch;
+
+            // 3.2) Simulate for the next 60 minutes in 15-second intervals
+            for (double t_min = 0; t_min < 30; t_min += 0.25) { // 60 minutes, 0.25 minute step
+                // Calculate tsince: minutes from TLE epoch to propagation time
+                double tsince = (current_jd - jd_epoch) * 1440.0 + t_min;
+
+                double current_julian_date = current_jd + (t_min / 1440.0);
 
                 double sat_pos_eci[3], sat_vel_eci[3];
-
-                double current_julian_date = unix_to_julian(current_time_unix + (time_t)(t_min * 60));
 
                 int error_code = sgp4(&satellites[i].tle.rec, tsince, sat_pos_eci, sat_vel_eci);
                 if (error_code >= 0) {
@@ -164,21 +185,27 @@ int main(int argc, char *argv[]) {
                     double azimuth, elevation, range;
                     ecef_to_topo(observer_ecef, sat_pos_ecef, &observer, &azimuth, &elevation, &range);
 
-                    if (elevation > 0) {
+                    if (elevation >= 0) {
                         if (!is_in_pass) {
+                            // Start tracking this pass
                             is_in_pass = true;
-                            pass_start_unix = current_time_unix + (time_t)(t_min * 60);
+                            pass_start_unix = utc_time_unix + (time_t)(t_min * 60);
                             max_elevation_in_pass = elevation;
+                            printTime_t("Pass started at:", pass_start_unix);
                         } else {
+                            // Update max elevation if needed
                             if (elevation > max_elevation_in_pass) {
                                 max_elevation_in_pass = elevation;
                             }
                         }
                     } else {
                         if (is_in_pass) {
-                            is_in_pass = false;
-                            time_t pass_end_unix = current_time_unix + (time_t)(t_min * 60);
+                            printTime_t("Pass ended at:", utc_time_unix + (time_t)(t_min * 60));    
 
+                            is_in_pass = false;
+                            time_t pass_end_unix = utc_time_unix + (time_t)(t_min * 60);
+
+                            // Create a new Pass entry
                             passes = realloc(passes, (pass_count + 1) * sizeof(Pass));
                             if (passes == NULL) {
                                 fprintf(stderr, "Memory reallocation failed. Exiting.\n");
@@ -186,14 +213,11 @@ int main(int argc, char *argv[]) {
                                 return 1;
                             }
 
+                            // Fill the pass details
                             strcpy(passes[pass_count].name, satellites[i].name);
                             trim_whitespace(passes[pass_count].name);
-
-                            struct tm *start_tm = localtime(&pass_start_unix);
-                            strftime(passes[pass_count].start_time, sizeof(passes[pass_count].start_time) - 1, "%Y-%m-%d %H:%M:%S", start_tm);
-
-                            struct tm *end_tm = localtime(&pass_end_unix);
-                            strftime(passes[pass_count].end_time, sizeof(passes[pass_count].end_time) - 1, "%Y-%m-%d %H:%M:%S", end_tm);
+                            passes[pass_count].start_unix = pass_start_unix;
+                            passes[pass_count].end_unix = pass_end_unix;
                             passes[pass_count].max_elevation = max_elevation_in_pass;
                             
                             pass_count++;
@@ -206,11 +230,11 @@ int main(int argc, char *argv[]) {
                     return 1;
                 }
             }
-        
         }
 
         // 4) Filter passes with the data sent as arguments
         if (argc - arg_offset == 6){ 
+            // In case all filtering criteria are provided, parse them
             int base = 1 + arg_offset;
             int filter_exclude_allready_visible = atoi(argv[base + 0]);
             int filter_exclude_DTC = atoi(argv[base + 1]); 
@@ -218,10 +242,9 @@ int main(int argc, char *argv[]) {
             int sort_by_option = atoi(argv[base + 3]);
             double number_of_SV_to_display = atof(argv[base + 4]);
 
-
+            // Create a new list to hold filtered passes
             Pass* filtered_passes = NULL;
             int filtered_count = 0;
-            time_t now = time(NULL);
 
             // 4.1) Apply filtering criteria for each detected pass
             for (int j = 0; j < pass_count; j++) {
@@ -233,17 +256,8 @@ int main(int argc, char *argv[]) {
                 char *dtc_ptr = strrchr(satellite_name, '[');
                 bool has_DTC = (dtc_ptr != NULL && strstr(dtc_ptr, "DTC") != NULL);
 
-                // Convert pass start and end times back to unix time for comparison
-                struct tm pass_start_tm;
-                strptime(passes[j].start_time, "%Y-%m-%d %H:%M:%S", &pass_start_tm);
-                time_t pass_start_unix = mktime(&pass_start_tm);
-
-                struct tm pass_end_tm;
-                strptime(passes[j].end_time, "%Y-%m-%d %H:%M:%S", &pass_end_tm);
-                time_t pass_end_unix = mktime(&pass_end_tm);
-
                 // Check if the pass is currently ongoing
-                bool is_currently_visible = (now >= pass_start_unix && now <= pass_end_unix);
+                bool is_currently_visible = (utc_time_unix >= passes[j].start_unix && utc_time_unix <= passes[j].end_unix);
 
                 // Apply filtering criteria
                 if ((filter_exclude_allready_visible && is_currently_visible) ||
@@ -277,31 +291,24 @@ int main(int argc, char *argv[]) {
                     }
                     break;
                 case 2: // Sort by start time (earliest first)
-                    for (int m = 0; m < filtered_count - 1; m++) {
-                        for (int n = m + 1; n < filtered_count; n++) {
-                            struct tm tm_m, tm_n;
-                            strptime(filtered_passes[m].start_time, "%Y-%m-%d %H:%M:%S", &tm_m);
-                            strptime(filtered_passes[n].start_time, "%Y-%m-%d %H:%M:%S", &tm_n);
-                            time_t time_m = mktime(&tm_m);
-                            time_t time_n = mktime(&tm_n);
-                            if (time_m > time_n) {
+                    bool anySwapped;
+                    do {
+                        anySwapped = false;
+                        for (int m = 0; m < filtered_count - 1; m++) {
+                            if (filtered_passes[m].start_unix > filtered_passes[m + 1].start_unix) {
                                 Pass temp = filtered_passes[m];
-                                filtered_passes[m] = filtered_passes[n];
-                                filtered_passes[n] = temp;
+                                filtered_passes[m] = filtered_passes[m + 1];
+                                filtered_passes[m + 1] = temp;
+                                anySwapped = true;
                             }
                         }
-                    }
-                    break;
-                case 3: // Sort by longer duration (longest first)
+                    }while(anySwapped);
+                break;
+                case 3: // Sort by duration (longest first)
                     for (int m = 0; m < filtered_count - 1; m++) {
                         for (int n = m + 1; n < filtered_count; n++) {
-                            struct tm start_tm_m, end_tm_m, start_tm_n, end_tm_n;
-                            strptime(filtered_passes[m].start_time, "%Y-%m-%d %H:%M:%S", &start_tm_m);
-                            strptime(filtered_passes[m].end_time, "%Y-%m-%d %H:%M:%S", &end_tm_m);
-                            strptime(filtered_passes[n].start_time, "%Y-%m-%d %H:%M:%S", &start_tm_n);
-                            strptime(filtered_passes[n].end_time, "%Y-%m-%d %H:%M:%S", &end_tm_n);
-                            time_t duration_m = mktime(&end_tm_m) - mktime(&start_tm_m);
-                            time_t duration_n = mktime(&end_tm_n) - mktime(&start_tm_n);
+                            double duration_m = difftime(filtered_passes[m].end_unix, filtered_passes[m].start_unix);
+                            double duration_n = difftime(filtered_passes[n].end_unix, filtered_passes[n].start_unix);
                             if (duration_m < duration_n) {
                                 Pass temp = filtered_passes[m];
                                 filtered_passes[m] = filtered_passes[n];
@@ -310,13 +317,23 @@ int main(int argc, char *argv[]) {
                         }
                     }
                     break;
+                default:
+                    printf("Unknown sorting option %d. No sorting applied.\n", sort_by_option);
+                    break;
             }
 
             // 4.3) Print the filtered and sorted passes, limited to the specified number
             int display_count = (number_of_SV_to_display > 0 && number_of_SV_to_display < filtered_count) ? (int)number_of_SV_to_display : filtered_count;
             for (int j = 0; j < display_count; j++) {
+                // Convert time_t to string for display
+                char start_str[50], end_str[50];
+                struct tm *start_tm = gmtime(&filtered_passes[j].start_unix);
+                struct tm *end_tm = gmtime(&filtered_passes[j].end_unix);
+                strftime(start_str, sizeof(start_str), "%Y-%m-%d %H:%M:%S", start_tm);
+                strftime(end_str, sizeof(end_str), "%Y-%m-%d %H:%M:%S", end_tm);
+                
                 printf("Satellite: %s, Start: %s, End: %s, Max Elevation: %.2f deg\n",
-                       filtered_passes[j].name, filtered_passes[j].start_time, filtered_passes[j].end_time, filtered_passes[j].max_elevation);
+                       filtered_passes[j].name, start_str, end_str, filtered_passes[j].max_elevation);
             }
 
             // Clean up
@@ -325,20 +342,34 @@ int main(int argc, char *argv[]) {
         }else if(argc == 0)
         {        
             // No filtering criteria provided, default behaviour (Show 10 passes unfiltered)
-            pass_count = 10;
-            for (int j = 0; j < pass_count; j++) {
+            int display_count = (pass_count < 10) ? pass_count : 10;
+            for (int j = 0; j < display_count; j++) {
+                // Convert time_t to string for display
+                char start_str[50], end_str[50];
+                struct tm *start_tm = gmtime(&passes[j].start_unix);
+                struct tm *end_tm = gmtime(&passes[j].end_unix);
+                strftime(start_str, sizeof(start_str), "%Y-%m-%d %H:%M:%S", start_tm);
+                strftime(end_str, sizeof(end_str), "%Y-%m-%d %H:%M:%S", end_tm);
+                
                 printf("Satellite: %s, Start: %s, End: %s, Max Elevation: %.2f deg\n",
-                       passes[j].name, passes[j].start_time, passes[j].end_time, passes[j].max_elevation);
+                       passes[j].name, start_str, end_str, passes[j].max_elevation);
             }   
 
         }else{
             // Incorrect number of arguments, notify user and continue with default behaviour (Show 10 passes unfiltered)
             printf("Incorrect number of arguments. Expected 5 arguments for filtering criteria.\n");
             
-            pass_count = 10; 
-            for (int j = 0; j < pass_count; j++) {
+            int display_count = (pass_count < 10) ? pass_count : 10;
+            for (int j = 0; j < display_count; j++) {
+                // Convert time_t to string for display
+                char start_str[50], end_str[50];
+                struct tm *start_tm = gmtime(&passes[j].start_unix);
+                struct tm *end_tm = gmtime(&passes[j].end_unix);
+                strftime(start_str, sizeof(start_str), "%Y-%m-%d %H:%M:%S", start_tm);
+                strftime(end_str, sizeof(end_str), "%Y-%m-%d %H:%M:%S", end_tm);
+                
                 printf("Satellite: %s, Start: %s, End: %s, Max Elevation: %.2f deg\n",
-                       passes[j].name, passes[j].start_time, passes[j].end_time, passes[j].max_elevation);
+                       passes[j].name, start_str, end_str, passes[j].max_elevation);
             } 
         }
         

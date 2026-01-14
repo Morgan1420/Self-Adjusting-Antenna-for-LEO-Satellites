@@ -21,8 +21,10 @@
 #define DEGREES_TO_RADIANS (PI / 180.0)
 #define MINUTES_PER_DAY 1440.0
 #define SECONDS_PER_DAY 86400.0
-#define EARTH_RADIUS_WGS84 6378.137 // km
-#define EARTH_FLATTENING_WGS84 (1.0 / 298.257223563)
+// WGS84 Ellipsoid Parameters
+#define EARTH_RADIUS_WGS84 6378.137 // km (semi-major axis)
+#define EARTH_FLATTENING_NORMALIZED (1.0 / 298.257223563) // f
+#define EARTH_ECCENTRICITY_SQUARED 0.00669437999014132 // e² = 2f - f²
 
 
 // Struct to hold the TLE data for a single satellite
@@ -41,8 +43,8 @@ typedef struct {
 // Struct to store a single visibility pass
 typedef struct {
     char name[50];
-    char start_time[50];
-    char end_time[50];
+    time_t start_unix;
+    time_t end_unix;
     double max_elevation;
 } Pass;
 

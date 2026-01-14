@@ -25,7 +25,7 @@ def check_tle_file_age(tle_filename: str):
     return False
 
 
-# Function to read parameters from "capture_files/capture_conf.txt"
+# Function to read parameters from "capture_conf.txt"
 def read_conf_script(script_path):
     params = {}
     with open(script_path, 'r') as file:
@@ -44,8 +44,10 @@ def read_conf_script(script_path):
     return params
 
 # Satellite parameters 
-# Read satellite parameters from "capture_files/capture_conf.txt"
-conf_params = read_conf_script('capture_files/capture_conf.txt')
+# Read satellite parameters from "capture_conf.txt"
+# conf_params = read_conf_script('capture_conf.txt')
+script_dir = os.path.dirname(os.path.abspath(__file__))
+conf_params = read_conf_script(os.path.join(script_dir, 'capture_conf.txt'))
 center_freq = conf_params['frequency']
 bandwidth = conf_params['bandwidth']
 fs = conf_params['samplerate']

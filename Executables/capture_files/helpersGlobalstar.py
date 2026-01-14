@@ -1,5 +1,4 @@
 import requests
-import ephem
 import subprocess
 from time import sleep 
 from typing import Dict
@@ -47,21 +46,6 @@ def download_tle_Globalstar(tle_filename:str) -> str:
 		fh.write(tle)
 	
 	helpers.clean_tle_file(tle_filename)
-
-##Create a pyephem sat object for all the active satellites using TLE data
-def active_Globalstar_sats(activeGlobalstar_sats):
-    with open("Globalstar.tle", 'r') as fh:
-        for svid in fh:
-            svid = svid.strip()
-            line1 = fh.readline()
-            line2 = fh.readline()
-        
-            if svid.strip() not in GLOBALSTAR_GEN2_SATELLITES:
-                continue
-        
-            sat = ephem.readtle(svid, line1, line2)
-
-            activeGlobalstar_sats[svid] = {'sat_obj' : sat, 'tles' : [svid, line1, line2]}
 
 #Save the TLE data of active Orbcomm satellites to a file.
 def tle_of_active_Globalstar(TLE_path: str) -> None:
@@ -117,14 +101,3 @@ def bladeRFdataGlobalstar(record_length: int, fs: int, directory: str):
         process.kill()
         raise e
 
-#Wait until the satellite that is visibile passes the minimum elevation
-def sleep_until_sat_passes(sats, active_sats: Dict[str, dict], obs, min_elevation: int):
-
-    for minute in range(0, 60*12):
-        obs.date = ephem.now() + minute * ephem.minute
-        for sat_name in sats:
-            sat = active_sats[sat_name]['sat_obj']
-            sat.compute(obs)
-            if degrees(sat.alt) < min_elevation:
-                return (minute*60)
-    return 0

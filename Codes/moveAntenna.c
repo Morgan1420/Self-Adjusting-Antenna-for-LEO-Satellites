@@ -14,8 +14,8 @@
  *  - Updates the JSON file: writes new `currentAz`, `currentEl` and appends a record to `LastMovements`
  *
  * Build:
- *   gcc -o moveAntenna moveAntenna.c Arduino_stuff/arduino_communications.c -IArduino_stuff -Wall -Wextra
- *
+ *   gcc -o moveAntenna moveAntenna.c Arduino_stuff/arduino_communications.c AntennaMovementInstructions/utils.c AntennaMovementInstructions/JSON_related_functions.c AntennaMovementInstructions/command_handler_functions.c -IArduino_stuff -Wall -Wextra
+ 
  * Examples:
  *   # Calibrate (move to Az=0, El=90)
  *   ./moveAntenna C

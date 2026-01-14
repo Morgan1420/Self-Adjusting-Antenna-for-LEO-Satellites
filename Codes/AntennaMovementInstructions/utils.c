@@ -101,7 +101,7 @@ int send_command_and_update_json(const char *command, const char *json_path, int
     }
     // Esperem resposta inicial
     char reply[128] = {0};
-    int rr = read_line_with_timeout(fd, reply, sizeof(reply), 5);
+    int rr = read_line_with_timeout(fd, reply, sizeof(reply), 30);
     if (rr > 0) {
         fprintf(stderr, "Arduino initial reply: %s\n", reply);
     }
@@ -121,7 +121,7 @@ int send_command_and_update_json(const char *command, const char *json_path, int
 
     // Esperem resposta
     reply[0] = '\0';
-    rr = read_line_with_timeout(fd, reply, sizeof(reply), 5);
+    rr = read_line_with_timeout(fd, reply, sizeof(reply), 30);
     if (rr > 0) {
         fprintf(stderr, "Arduino reply: %s\n", reply);
     }

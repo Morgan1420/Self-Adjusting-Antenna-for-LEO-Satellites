@@ -12,8 +12,7 @@
 
 // Compile with:
 // NEED TO UPDATE COMMAND
-// gcc -o process_anenna_movements process_anenna_movements.c Satellite_data/download_and_parse_TLE_functions.c Satellite_data/coordinates_translation_functions.c Arduino_stuff/arduino_communications.c -lcurl -L./SGP4_library -lSGP4 -lm
-
+// gcc -o process_antenna_movements process_anenna_movements.c Satellite_data/download_and_parse_TLE_functions.c Satellite_data/coordinates_translation_functions.c Arduino_stuff/arduino_communications.c AntennaMovementInstructions/command_handler_functions.c AntennaMovementInstructions/JSON_related_functions.c AntennaMovementInstructions/utils.c -lcurl -L./SGP4_library -lSGP4 -lm
 
 // URLs for different constellations
 const char *url_starlink = "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle";
