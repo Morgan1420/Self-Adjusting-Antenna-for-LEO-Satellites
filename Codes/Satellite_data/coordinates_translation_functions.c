@@ -43,17 +43,17 @@ void ecef_to_topo(const double* observer_ecef, const double* satellite_ecef, con
     double lat_rad = observer_geo->latitude_deg * DEGREES_TO_RADIANS;
     double lon_rad = observer_geo->longitude_deg * DEGREES_TO_RADIANS;
 
-    // Transformation to SEZ (South-East-Zenith) frame
+    // Transformation to NEZ (North-East-Zenith) frame
     double topoS[3];
-    topoS[0] = -sin(lat_rad) * cos(lon_rad) * rx - sin(lat_rad) * sin(lon_rad) * ry + cos(lat_rad) * rz;  // South
+    topoS[0] = -sin(lat_rad) * cos(lon_rad) * rx - sin(lat_rad) * sin(lon_rad) * ry + cos(lat_rad) * rz;  // North
     topoS[1] = -sin(lon_rad) * rx + cos(lon_rad) * ry;                                                      // East
     topoS[2] = cos(lat_rad) * cos(lon_rad) * rx + cos(lat_rad) * sin(lon_rad) * ry + sin(lat_rad) * rz;   // Zenith
 
     *range = sqrt(topoS[0]*topoS[0] + topoS[1]*topoS[1] + topoS[2]*topoS[2]);
     
     // Azimuth: measured from North (0 deg) through East (90 deg), South (180 deg), West (270 deg)
-    // In SEZ frame, North is -South, so we use atan2(East, -South)
-    *azimuth = atan2(topoS[1], -topoS[0]);
+    // In this NEZ frame, we use atan2(East, North)
+    *azimuth = atan2(topoS[1], topoS[0]);
     
     // Elevation: angle above horizon
     *elevation = asin(topoS[2] / *range);

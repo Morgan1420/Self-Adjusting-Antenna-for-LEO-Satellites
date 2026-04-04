@@ -60,7 +60,7 @@ int handle_origin_action(const char *json, const char *json_path) {
     }
 }
 
-// Acció B (Back 1): Desfer l'últim moviment
+// Action handler: Undo last movement
 int handle_back_action(const char *json, const char *json_path) {
     // 1. Extraiem el vector de "LastMovements"
     char *inner = extract_last_movements_inner(json);
@@ -201,9 +201,9 @@ int handle_back_action(const char *json, const char *json_path) {
     parse_json_int(json, "currentAz", &curAz);
     parse_json_int(json, "currentEl", &curEl);
 
-    if (strncmp(movements[num_movements - 1], "MAL", 3) == 0) {
+    if (strncmp(movements[num_movements - 1], "MAA", 3) == 0) {
         curAz += step_size;
-    } else if (strncmp(movements[num_movements - 1], "MAR", 3) == 0) {
+    } else if (strncmp(movements[num_movements - 1], "MAH", 3) == 0) {
         curAz -= step_size;
     } else if (strncmp(movements[num_movements - 1], "MEU", 3) == 0) {
         curEl -= step_size;
@@ -242,7 +242,7 @@ int handle_test_action(const char *json_path, int curAz, int curEl) {
     // Move 360 degrees left
     fprintf(stderr, "Moving 360 degrees left...\n");
     for (int i = 0; i < 360; i++) {
-        if (send_command_and_update_json("MAL001", json_path, curAz - (i + 1), curEl) != 0) {
+        if (send_command_and_update_json("MAA001", json_path, curAz - (i + 1), curEl) != 0) {
             fprintf(stderr, "Test failed during left movement\n");
             return 10;
         }
@@ -262,7 +262,7 @@ int handle_test_action(const char *json_path, int curAz, int curEl) {
     // Move 360 degrees right
     fprintf(stderr, "Moving 360 degrees right...\n");
     for (int i = 0; i < 360; i++) {
-        if (send_command_and_update_json("MAR001", json_path, curAz + (i + 1), curEl) != 0) {
+        if (send_command_and_update_json("MAH001", json_path, curAz + (i + 1), curEl) != 0) {
             fprintf(stderr, "Test failed during right movement\n");
             return 12;
         }
@@ -322,11 +322,11 @@ int handle_calibrate_action(const char *json_path, int curAz, int curEl) {
     if (abs_el > 99) abs_el = 99;
     
     if (azimuth_correction > 0) {
-        snprintf(az_command, sizeof(az_command), "MAR%03d", abs_az);
+        snprintf(az_command, sizeof(az_command), "MAH%03d", abs_az);
     } else if (azimuth_correction < 0) {
-        snprintf(az_command, sizeof(az_command), "MAL%03d", abs_az);
+        snprintf(az_command, sizeof(az_command), "MAA%03d", abs_az);
     } else {
-        snprintf(az_command, sizeof(az_command), "MAR000");
+        snprintf(az_command, sizeof(az_command), "MAH000");
     }
     
     if (elevation_correction > 0) {
@@ -421,9 +421,9 @@ int handle_movement_action(char action, int step, const char *json, const char *
     // Build command
     char command[32];
     if (action == 'L') {
-        snprintf(command, sizeof(command), "MAL%03d\n", step);
+        snprintf(command, sizeof(command), "MAA%03d\n", step);
     } else if (action == 'R') {
-        snprintf(command, sizeof(command), "MAR%03d\n", step);
+        snprintf(command, sizeof(command), "MAH%03d\n", step);
     } else if (action == 'U') {
         snprintf(command, sizeof(command), "MEU%03d\n", step);
     } else {

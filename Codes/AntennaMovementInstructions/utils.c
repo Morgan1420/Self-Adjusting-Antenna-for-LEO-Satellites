@@ -13,7 +13,7 @@
 #include "JSON_related_functions.h"
 #include "../Arduino_stuff/arduino_communications.h"
 
-/* Invert a command while preserving numeric width (e.g., MAR010 -> MAL010) */
+/* Invert a command while preserving numeric width (e.g., MAH010 -> MAA010) */
 void invert_command(const char *cmd, char *out, size_t out_len) {
     if (!cmd || !out || out_len < 8) return;
 
@@ -23,10 +23,10 @@ void invert_command(const char *cmd, char *out, size_t out_len) {
         // Calibration command; keep as is with single newline
         snprintf(out, out_len, "C\n");
         return;
-    } else if (strncmp(cmd, "MAL", 3) == 0) {
-        prefix = "MAR";
-    } else if (strncmp(cmd, "MAR", 3) == 0) {
-        prefix = "MAL";
+    } else if (strncmp(cmd, "MAA", 3) == 0) {
+        prefix = "MAH";
+    } else if (strncmp(cmd, "MAH", 3) == 0) {
+        prefix = "MAA";
     } else if (strncmp(cmd, "MEU", 3) == 0) {
         prefix = "MED";
     } else if (strncmp(cmd, "MED", 3) == 0) {
@@ -84,7 +84,7 @@ int read_line_with_timeout(int fd, char *buf, size_t buflen, int timeout_seconds
     return (int)idx;
 }
 
-// Funció que envia una comanda a l'Arduino i actualitza el fitxer JSON
+// Helper function to send a command to Arduino and update the JSON file
 int send_command_and_update_json(const char *command, const char *json_path, int newAz, int newEl) {
     // ------ 1: Establim connexió amb l'Arduino
     // Busquem el port

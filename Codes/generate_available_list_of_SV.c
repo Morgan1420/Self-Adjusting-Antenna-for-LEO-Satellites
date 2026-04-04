@@ -14,10 +14,10 @@
  * hard-coded observer location.
  *
  * Build:
- *   gcc -o main generate_available_list_of_SV.c Satellite_data/download_and_parse_TLE_functions.c Satellite_data/coordinates_translation_functions.c -lcurl -L SGP4_library -lSGP4 -lm
+ *   gcc -o generate_available_list_of_SV generate_available_list_of_SV.c Satellite_data/download_and_parse_TLE_functions.c Satellite_data/coordinates_translation_functions.c -lcurl -L SGP4_library -lSGP4 -lm
  
  * Usage:
- *   ./main [CONST] [exclude_visible] [exclude_DTC] [min_elevation_deg] [sort_option] [num_to_display]
+ *   ./generate_available_list_of_SV [CONST] [exclude_visible] [exclude_DTC] [min_elevation_deg] [sort_option] [num_to_display]
  *
  * Arguments:
  *   CONST (optional)        One-letter code or name selecting the constellation:
@@ -59,11 +59,13 @@ void trim_whitespace(char *str) {
     while (end >= str && isspace((unsigned char)*end)) *end-- = '\0';
 }
 
-void printTime_t(char* textBefore, time_t time){
+void printTime_t(char* textBefore, time_t time, bool newline) {
     char time_str[50];
-    struct tm *time_tm = localtime(&time);
+    struct tm *time_tm = gmtime(&time);  // Use gmtime() for UTC display
+    time_tm->tm_hour += 1; 
+    mktime(time_tm); // Normalize the time structure
     strftime(time_str, sizeof(time_str), "%Y-%m-%d %H:%M:%S", time_tm);
-    printf("%s %s\n", textBefore, time_str);
+    printf("%s %s%s", textBefore, time_str, newline ? "\n" : "");
 }
 
 // Define the observer's location (Sant Vicenç dels Horts, Catalonia, Spain)
@@ -139,16 +141,13 @@ int main(int argc, char *argv[]) {
         // Get current UTC time
         // time() returns time_t in UTC (seconds since Unix epoch)
         time_t utc_time_unix = time(NULL);
-        
-        printTime_t("Current UTC time:", utc_time_unix);
-
+  
         // Define a list to store satellite passes
         Pass* passes = NULL;
         int pass_count = 0;
 
         // 3) For each satellite, propagate its position and check for visibility
         for(int i = 0; i < num_satellites; ++i) {
-            
             // Set operation mode ('a' = AFSPC, 'i' = improved)
             char opsmode = 'i';
 
@@ -163,13 +162,15 @@ int main(int argc, char *argv[]) {
             bool is_in_pass = false;
             time_t pass_start_unix = 0;
             double max_elevation_in_pass = 0.0;
+            double first_azimuth_in_pass = 0.0;
 
-            // Get current julian date and TLE epoch for tsince calculation
+            // Get current Julian date and full TLE epoch (including fractional day) for tsince calculation
             double current_jd = unix_to_julian(utc_time_unix);
-            double jd_epoch = satellites[i].tle.rec.jdsatepoch;
+            double jd_epoch = satellites[i].tle.rec.jdsatepoch + satellites[i].tle.rec.jdsatepochF;
 
             // 3.2) Simulate for the next 60 minutes in 15-second intervals
-            for (double t_min = 0; t_min < 30; t_min += 0.25) { // 60 minutes, 0.25 minute step
+            double last_elevation = -1.0; // track elevation from previous timestep for debugging
+            for (double t_min = 0; t_min < 60; t_min += 0.25) { // 60 minutes, 0.25 minute step
                 // Calculate tsince: minutes from TLE epoch to propagation time
                 double tsince = (current_jd - jd_epoch) * 1440.0 + t_min;
 
@@ -184,14 +185,14 @@ int main(int argc, char *argv[]) {
                     
                     double azimuth, elevation, range;
                     ecef_to_topo(observer_ecef, sat_pos_ecef, &observer, &azimuth, &elevation, &range);
-
-                    if (elevation >= 0) {
+                    
+                    if (elevation > 0.0) { // Visibility threshold at 10 degrees
                         if (!is_in_pass) {
                             // Start tracking this pass
                             is_in_pass = true;
                             pass_start_unix = utc_time_unix + (time_t)(t_min * 60);
+                            first_azimuth_in_pass = azimuth;
                             max_elevation_in_pass = elevation;
-                            printTime_t("Pass started at:", pass_start_unix);
                         } else {
                             // Update max elevation if needed
                             if (elevation > max_elevation_in_pass) {
@@ -200,10 +201,9 @@ int main(int argc, char *argv[]) {
                         }
                     } else {
                         if (is_in_pass) {
-                            printTime_t("Pass ended at:", utc_time_unix + (time_t)(t_min * 60));    
-
                             is_in_pass = false;
                             time_t pass_end_unix = utc_time_unix + (time_t)(t_min * 60);
+                            
 
                             // Create a new Pass entry
                             passes = realloc(passes, (pass_count + 1) * sizeof(Pass));
@@ -219,10 +219,12 @@ int main(int argc, char *argv[]) {
                             passes[pass_count].start_unix = pass_start_unix;
                             passes[pass_count].end_unix = pass_end_unix;
                             passes[pass_count].max_elevation = max_elevation_in_pass;
-                            
+                            passes[pass_count].first_azimuth = first_azimuth_in_pass;
+
                             pass_count++;
                         }
                     }
+                    last_elevation = elevation;
 
                 } else {
                     printf("SGP4 propagation error at time %f min.\n", tsince);
@@ -324,16 +326,13 @@ int main(int argc, char *argv[]) {
 
             // 4.3) Print the filtered and sorted passes, limited to the specified number
             int display_count = (number_of_SV_to_display > 0 && number_of_SV_to_display < filtered_count) ? (int)number_of_SV_to_display : filtered_count;
-            for (int j = 0; j < display_count; j++) {
-                // Convert time_t to string for display
-                char start_str[50], end_str[50];
-                struct tm *start_tm = gmtime(&filtered_passes[j].start_unix);
-                struct tm *end_tm = gmtime(&filtered_passes[j].end_unix);
-                strftime(start_str, sizeof(start_str), "%Y-%m-%d %H:%M:%S", start_tm);
-                strftime(end_str, sizeof(end_str), "%Y-%m-%d %H:%M:%S", end_tm);
-                
-                printf("Satellite: %s, Start: %s, End: %s, Max Elevation: %.2f deg\n",
-                       filtered_passes[j].name, start_str, end_str, filtered_passes[j].max_elevation);
+            for (int j = 0; j < display_count; j++) {             
+                // /^Satellite:\s*(.+?),\s*Start:\s*([^,]+),\s*End:\s*([^,]+),\s*Max Elevation:\s*([0-9.+-]+)\s*deg,\s*First Azimuth:\s*([0-9.+-]+)\s*deg/i';
+
+                printf("Satellite: %s", filtered_passes[j].name);
+                printTime_t(", Start:", filtered_passes[j].start_unix, false);
+                printTime_t(", End:", filtered_passes[j].end_unix, false);
+                printf(", Max Elevation: %.2f deg, First Azimuth: %.2f deg\n", filtered_passes[j].max_elevation, filtered_passes[j].first_azimuth);
             }
 
             // Clean up
@@ -344,15 +343,11 @@ int main(int argc, char *argv[]) {
             // No filtering criteria provided, default behaviour (Show 10 passes unfiltered)
             int display_count = (pass_count < 10) ? pass_count : 10;
             for (int j = 0; j < display_count; j++) {
-                // Convert time_t to string for display
-                char start_str[50], end_str[50];
-                struct tm *start_tm = gmtime(&passes[j].start_unix);
-                struct tm *end_tm = gmtime(&passes[j].end_unix);
-                strftime(start_str, sizeof(start_str), "%Y-%m-%d %H:%M:%S", start_tm);
-                strftime(end_str, sizeof(end_str), "%Y-%m-%d %H:%M:%S", end_tm);
-                
-                printf("Satellite: %s, Start: %s, End: %s, Max Elevation: %.2f deg\n",
-                       passes[j].name, start_str, end_str, passes[j].max_elevation);
+                printf("Satellite: %s", passes[j].name);
+                printTime_t(", Start:", passes[j].start_unix, false);
+                printTime_t(", End:", passes[j].end_unix, false);
+                printf(", Max Elevation: %.2f deg\n", passes[j].max_elevation);
+                printf(", First Azimuth: %.2f deg\n", passes[j].first_azimuth);
             }   
 
         }else{
@@ -362,14 +357,10 @@ int main(int argc, char *argv[]) {
             int display_count = (pass_count < 10) ? pass_count : 10;
             for (int j = 0; j < display_count; j++) {
                 // Convert time_t to string for display
-                char start_str[50], end_str[50];
-                struct tm *start_tm = gmtime(&passes[j].start_unix);
-                struct tm *end_tm = gmtime(&passes[j].end_unix);
-                strftime(start_str, sizeof(start_str), "%Y-%m-%d %H:%M:%S", start_tm);
-                strftime(end_str, sizeof(end_str), "%Y-%m-%d %H:%M:%S", end_tm);
-                
-                printf("Satellite: %s, Start: %s, End: %s, Max Elevation: %.2f deg\n",
-                       passes[j].name, start_str, end_str, passes[j].max_elevation);
+                printf("Satellite: %s", passes[j].name);
+                printTime_t(", Start:", passes[j].start_unix, false);
+                printTime_t(", End:", passes[j].end_unix, false);
+                printf(", Max Elevation: %.2f deg\n", passes[j].max_elevation);
             } 
         }
         

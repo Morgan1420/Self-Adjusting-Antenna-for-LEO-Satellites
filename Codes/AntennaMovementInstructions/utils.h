@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-/* Invert a command: MAL -> MAR, MAR -> MAL, MEU -> MED, MED -> MEU, C -> C */
+/* Invert a command: MAA -> MAH, MAH -> MAA, MEU -> MED, MED -> MEU, C -> C */
 void invert_command(const char *cmd, char *out, size_t out_len);
 
 /* Wait for a line from fd with timeout seconds; the line is stored in buf (buflen-1), returns bytes read or -1 on timeout/error */

@@ -62,7 +62,7 @@ void moveElevation(bool dir, int deg){
 }
 
 void calibrate(){
-  
+  // Placeholder function for now
 }
 
 void test(){
@@ -141,8 +141,8 @@ void loop() {
     
     // 2.2. Handle the commands
     /* The commands can look like one of the following: 
-     * - MALXXX (Move Azimuth Left XXX degrees)
-     * - MARXXX (Move Azimuth Right XXX degrees)
+     * - MAAXXX (Move Azimuth Left XXX degrees)
+     * - MAHXXX (Move Azimuth Right XXX degrees)
      * - MEUXX (Move Elevation Up XX degrees)
      * - MEDXX (Move Elevation Down XX degrees)
      */
@@ -150,9 +150,9 @@ void loop() {
     // Movement commands
     if(command.startsWith("M")){
       if(command.indexOf("A") == 1){
-        // Command MAR or MAL
+        // Command MAH or MAA
         // Extract direction and degrees
-        bool dir = command.indexOf("L") == 2 ? true : false;
+        bool dir = command.indexOf("A") == 2 ? false : true;
         int deg = command.substring(3, 6).toInt(); // From index 3 (inclusive) to 6 (exclusive)
         // Move
         moveAzimuth(dir, deg);         

@@ -23,7 +23,7 @@
 #define SECONDS_PER_DAY 86400.0
 // WGS84 Ellipsoid Parameters
 #define EARTH_RADIUS_WGS84 6378.137 // km (semi-major axis)
-#define EARTH_FLATTENING_NORMALIZED (1.0 / 298.257223563) // f
+#define EARTH_FLATTENING_NORMAAIZED (1.0 / 298.257223563) // f
 #define EARTH_ECCENTRICITY_SQUARED 0.00669437999014132 // e² = 2f - f²
 
 
@@ -46,6 +46,7 @@ typedef struct {
     time_t start_unix;
     time_t end_unix;
     double max_elevation;
+    double first_azimuth;
 } Pass;
 
 

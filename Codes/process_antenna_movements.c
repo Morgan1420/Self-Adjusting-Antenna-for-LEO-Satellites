@@ -3,6 +3,9 @@
 #include <sys/types.h>
 #include <limits.h>
 
+// Uncomment to enable detailed orbit debug prints
+// #define ORBIT_DEBUG 1
+
 #include "Satellite_data/utils.h"
 #include "Satellite_data/download_and_parse_TLE_functions.h"
 #include "Satellite_data/coordinates_translation_functions.h"
@@ -12,7 +15,7 @@
 
 // Compile with:
 // NEED TO UPDATE COMMAND
-// gcc -o process_antenna_movements process_anenna_movements.c Satellite_data/download_and_parse_TLE_functions.c Satellite_data/coordinates_translation_functions.c Arduino_stuff/arduino_communications.c AntennaMovementInstructions/command_handler_functions.c AntennaMovementInstructions/JSON_related_functions.c AntennaMovementInstructions/utils.c -lcurl -L./SGP4_library -lSGP4 -lm
+// gcc -o process_antenna_movements process_antenna_movements.c Satellite_data/download_and_parse_TLE_functions.c Satellite_data/coordinates_translation_functions.c Arduino_stuff/arduino_communications.c AntennaMovementInstructions/command_handler_functions.c AntennaMovementInstructions/JSON_related_functions.c AntennaMovementInstructions/utils.c -lcurl -L./SGP4_library -lSGP4 -lm
 
 // URLs for different constellations
 const char *url_starlink = "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle";
@@ -125,6 +128,9 @@ int calculateOrbitAndGenerateCommands(char* satellite_name, char* constellation_
     // ------ 8. Propaguem per als següents 30 minuts en passos de 5 segons (0.0833 minuts) i imprimim resultats
     time_t current_time_unix = time(NULL);
     
+    // Compute full TLE epoch (Julian date) for correct tsince calculation
+    double jd_epoch = selected_tle->tle.rec.jdsatepoch + selected_tle->tle.rec.jdsatepochF;
+    
     // Create timebuf for current time (for first commands to execute immediately)
     char current_timebuf[64];
     struct tm *tm_current = localtime(&current_time_unix);
@@ -134,7 +140,12 @@ int calculateOrbitAndGenerateCommands(char* satellite_name, char* constellation_
     int cmd_count = 0;
     int capture_scheduled = 0;
     for (double t_min = 0.0; t_min < 30.0; t_min += 0.0833) {
-        double tsince = t_min; // minutes since epoch
+        // Absolute time of this step
+        time_t step_time_unix = current_time_unix + (time_t)(t_min * 60.0);
+        double jd = unix_to_julian(step_time_unix);
+
+        // Minutes since TLE epoch for SGP4
+        double tsince = (jd - jd_epoch) * 1440.0;
 
         double sat_pos_eci[3], sat_vel_eci[3];
 
@@ -147,8 +158,6 @@ int calculateOrbitAndGenerateCommands(char* satellite_name, char* constellation_
         }
 
         // 8.2. Convertim ECI a ECEF per a l'època/temps donat
-        time_t step_time_unix = current_time_unix + (time_t)(t_min * 60.0);
-        double jd = unix_to_julian(step_time_unix);
         double sat_pos_ecef[3];
         eci_to_ecef(sat_pos_eci, jd, sat_pos_ecef);
 
@@ -161,15 +170,19 @@ int calculateOrbitAndGenerateCommands(char* satellite_name, char* constellation_
         char timebuf[64];
         struct tm *tm = localtime(&step_time_unix);
         strftime(timebuf, sizeof(timebuf), "%Y-%m-%d %H:%M:%S", tm);
-        // printf("%s, Az: %.2f deg, El: %.2f deg, Range: %.3f km\n", timebuf, azimuth_deg, elevation_deg, range_km);
+
+    #ifdef ORBIT_DEBUG
+        printf("[ORBIT_DEBUG] %s, tsince=%.3f min, Az=%.2f deg, El=%.2f deg, Range=%.3f km\n",
+               timebuf, tsince, azimuth_deg, elevation_deg, range_km);
+    #endif
 
         // Només generem comandes Arduino per a posicions visibles (elevació > 0)
         if (elevation_deg <= 0.0) {
             continue;
         }
 
-        // Schedule capture once when elevation crosses >= 30 deg
-        if (!capture_scheduled && elevation_deg >= 30.0) {
+        // Schedule capture once when elevation crosses >= 25 deg
+        if (!capture_scheduled && elevation_deg >= 25.0) {
             cmds = realloc(cmds, (cmd_count + 1) * sizeof(char*));
             cmds[cmd_count++] = strdup("C");
             cmds = realloc(cmds, (cmd_count + 1) * sizeof(char*));
@@ -200,11 +213,11 @@ int calculateOrbitAndGenerateCommands(char* satellite_name, char* constellation_
             int abs_az = abs(delta_az);
             if (abs_az > 999) abs_az = 999;
             if (delta_az > 0) {
-                snprintf(cmdbuf, sizeof(cmdbuf), "MAR%03d", abs_az);
+                snprintf(cmdbuf, sizeof(cmdbuf), "MAH%03d", abs_az);
             } else if (delta_az < 0) {
-                snprintf(cmdbuf, sizeof(cmdbuf), "MAL%03d", abs_az);
+                snprintf(cmdbuf, sizeof(cmdbuf), "MAA%03d", abs_az);
             } else {
-                snprintf(cmdbuf, sizeof(cmdbuf), "MAR000"); // No movement needed
+                snprintf(cmdbuf, sizeof(cmdbuf), "MAH000"); // No movement needed
             }
             cmds = realloc(cmds, (cmd_count + 1) * sizeof(char*));
             cmds[cmd_count++] = strdup(cmdbuf);
@@ -241,10 +254,10 @@ int calculateOrbitAndGenerateCommands(char* satellite_name, char* constellation_
                 if (abs_az > 999) abs_az = 999;
                 if (delta_az > 0) {
                     // Move Azimuth Right
-                    snprintf(cmdbuf, sizeof(cmdbuf), "MAR%03d", abs_az);
+                    snprintf(cmdbuf, sizeof(cmdbuf), "MAH%03d", abs_az);
                 } else {
                     // Move Azimuth Left
-                    snprintf(cmdbuf, sizeof(cmdbuf), "MAL%03d", abs_az);
+                    snprintf(cmdbuf, sizeof(cmdbuf), "MAA%03d", abs_az);
                 }
                 cmds = realloc(cmds, (cmd_count + 1) * sizeof(char*));
                 cmds[cmd_count++] = strdup(cmdbuf);

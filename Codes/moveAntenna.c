@@ -8,7 +8,7 @@
  * Behavior:
  *  - Reads the JSON file at ./comm_files/antennaStatus.json (expects fields `currentAz` and `currentEl` and `LastMovements` array)
  *  - Validates the requested action and clamps against allowed ranges
- *  - Constructs Arduino commands (MAR, MAL, MEU, MED for relative movements)
+ *  - Constructs Arduino commands (MAH, MAA, MEU, MED for relative movements)
  *  - Finds and opens the Arduino serial port using existing helpers in Arduino_stuff
  *  - Sends the command and waits briefly for a reply line ("DONE" or other)
  *  - Updates the JSON file: writes new `currentAz`, `currentEl` and appends a record to `LastMovements`

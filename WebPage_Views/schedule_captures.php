@@ -2,7 +2,7 @@
 
 // Define the paths to the comms file and executable
 $file_path = '../Executables/comm_files/Generate_available_list_of_SV.txt';
-$executable_path = '../Executables/Generate_available_list_of_SV';
+$executable_path = '../Executables/generate_available_list_of_SV';
 
 // Check if the C executable exists before trying to run it
 if (!file_exists($executable_path) || !is_executable($executable_path)) {
@@ -91,18 +91,32 @@ if (!file_exists($file_path) || !is_readable($file_path)) {
 // Read the file content into an array of lines
 $sv_array = file($file_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 
-// Parse each line into structured fields: name, start, end, max_elevation
+// Parse each line into structured fields: name, start, end, max_elevation, first_azimuth
 $sv_objects = [];
-// Regex to parse lines like: "Satellite: SAT_NAME, Start: START_TIME, End: END_TIME, Max Elevation: XX.X deg"
-$re = '/^Satellite:\s*(.+?),\s*Start:\s*([^,]+),\s*End:\s*([^,]+),\s*Max Elevation:\s*([0-9.+-]+)\s*deg/i';
+// Regex to parse lines like:
+// "Satellite: SAT_NAME, Start: START_TIME, End: END_TIME, Max Elevation: XX.X deg, First Azimuth: YY.Y deg"
+$re_with_az = '/^Satellite:\s*(.+?),\s*Start:\s*([^,]+),\s*End:\s*([^,]+),\s*Max Elevation:\s*([0-9.+-]+)\s*deg,\s*First Azimuth:\s*([0-9.+-]+)\s*deg/i';
+// Backwards-compatible regex without first azimuth
+$re_legacy = '/^Satellite:\s*(.+?),\s*Start:\s*([^,]+),\s*End:\s*([^,]+),\s*Max Elevation:\s*([0-9.+-]+)\s*deg/i';
+
 foreach ($sv_array as $line) {
-    if (preg_match($re, $line, $m)) {
+    if (preg_match($re_with_az, $line, $m)) {
         $sv_objects[] = [
             'raw' => $line,
             'name' => trim($m[1]),
             'start' => trim($m[2]),
             'end' => trim($m[3]),
             'max_elevation' => floatval($m[4]),
+            'first_azimuth' => floatval($m[5]),
+        ];
+    } elseif (preg_match($re_legacy, $line, $m)) {
+        $sv_objects[] = [
+            'raw' => $line,
+            'name' => trim($m[1]),
+            'start' => trim($m[2]),
+            'end' => trim($m[3]),
+            'max_elevation' => floatval($m[4]),
+            'first_azimuth' => null,
         ];
     } else {
         // fallback: keep whole line as name if it doesn't match
@@ -112,6 +126,7 @@ foreach ($sv_array as $line) {
             'start' => null,
             'end' => null,
             'max_elevation' => null,
+            'first_azimuth' => null,
         ];
     }
 }
@@ -205,12 +220,19 @@ foreach ($sv_array as $line) {
                 $safe_start = htmlspecialchars($obj['start'] ?? '', ENT_QUOTES, 'UTF-8');
                 $safe_end = htmlspecialchars($obj['end'] ?? '', ENT_QUOTES, 'UTF-8');
                 $safe_max = isset($obj['max_elevation']) ? htmlspecialchars((string)$obj['max_elevation'], ENT_QUOTES, 'UTF-8') : '';
+                $safe_first_az = isset($obj['first_azimuth']) && $obj['first_azimuth'] !== null
+                    ? htmlspecialchars((string)$obj['first_azimuth'], ENT_QUOTES, 'UTF-8')
+                    : '';
 
                 // radio with data attributes for start/end/max
                 echo "<input type='radio' name='satellite' value='{$safe_name}' id='sv_{$idx}' data-start='{$safe_start}' data-end='{$safe_end}' data-max='{$safe_max}'>";
                 echo "<label for='sv_{$idx}'>" . $safe_name;
                 if ($safe_start !== '') {
-                    echo " — <small>From {$safe_start} to {$safe_end}, max {$safe_max}°</small>";
+                    echo " — <small>From {$safe_start} to {$safe_end}, max {$safe_max}°";
+                    if ($safe_first_az !== '') {
+                        echo ", first az {$safe_first_az}°";
+                    }
+                    echo "</small>";
                 }
                 echo "</label><br>\n";
             }

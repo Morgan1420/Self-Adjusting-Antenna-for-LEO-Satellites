@@ -1,10 +1,10 @@
-Satellite: GLOBALSTAR M069, Start: 2026-01-14 17:55:19, End: 2026-01-14 18:20:34, Max Elevation: 85.89 deg
-Satellite: GLOBALSTAR M093, Start: 2026-01-14 17:57:19, End: 2026-01-14 18:20:04, Max Elevation: 53.65 deg
-Satellite: GLOBALSTAR M039, Start: 2026-01-14 17:57:19, End: 2026-01-14 18:20:04, Max Elevation: 51.99 deg
-Satellite: GLOBALSTAR M014, Start: 2026-01-14 17:53:19, End: 2026-01-14 18:18:19, Max Elevation: 48.90 deg
-Satellite: GLOBALSTAR M056, Start: 2026-01-14 17:53:19, End: 2026-01-14 18:16:04, Max Elevation: 41.27 deg
-Satellite: GLOBALSTAR M091, Start: 2026-01-14 17:53:19, End: 2026-01-14 18:14:34, Max Elevation: 40.49 deg
-Satellite: GLOBALSTAR M097, Start: 2026-01-14 17:56:34, End: 2026-01-14 18:18:49, Max Elevation: 40.22 deg
-Satellite: GLOBALSTAR M059, Start: 2026-01-14 17:53:19, End: 2026-01-14 18:15:19, Max Elevation: 35.94 deg
-Satellite: GLOBALSTAR M037, Start: 2026-01-14 17:53:19, End: 2026-01-14 18:01:19, Max Elevation: 32.80 deg
-Satellite: GLOBALSTAR M031, Start: 2026-01-14 17:53:19, End: 2026-01-14 18:00:34, Max Elevation: 30.10 deg
+Satellite: ORBCOMM FM14, Start: 2026-04-04 12:01:22, End: 2026-04-04 12:15:22, Max Elevation: 80.64 deg, First Azimuth: 289.59 deg
+Satellite: ORBCOMM FM16, Start: 2026-04-04 12:19:52, End: 2026-04-04 12:35:37, Max Elevation: 79.22 deg, First Azimuth: 290.19 deg
+Satellite: ORBCOMM FM19, Start: 2026-04-04 12:45:07, End: 2026-04-04 13:00:52, Max Elevation: 76.60 deg, First Azimuth: 290.27 deg
+Satellite: ORBCOMM FM106, Start: 2026-04-04 12:37:07, End: 2026-04-04 12:51:37, Max Elevation: 64.99 deg, First Azimuth: 294.19 deg
+Satellite: ORBCOMM FM28, Start: 2026-04-04 12:01:22, End: 2026-04-04 12:08:37, Max Elevation: 56.75 deg, First Azimuth: 22.77 deg
+Satellite: ORBCOMM FM113, Start: 2026-04-04 12:31:07, End: 2026-04-04 12:45:37, Max Elevation: 43.88 deg, First Azimuth: 284.76 deg
+Satellite: ORBCOMM FM116, Start: 2026-04-04 12:01:22, End: 2026-04-04 12:11:22, Max Elevation: 43.49 deg, First Azimuth: 299.35 deg
+Satellite: ORBCOMM FM119, Start: 2026-04-04 12:25:22, End: 2026-04-04 12:39:52, Max Elevation: 43.41 deg, First Azimuth: 283.08 deg
+Satellite: ORBCOMM FM15, Start: 2026-04-04 12:01:22, End: 2026-04-04 12:06:07, Max Elevation: 23.74 deg, First Azimuth: 94.94 deg
+Satellite: ORBCOMM-X, Start: 2026-04-04 12:01:22, End: 2026-04-04 12:05:37, Max Elevation: 23.16 deg, First Azimuth: 183.38 deg
